@@ -2,32 +2,28 @@
 import { Schema } from "jsonschema";
 
 export class DeviceInterface {
-    readonly id: string;
-    readonly version: string;
-    readonly properties: DeviceProperty[];
-    readonly methods: DeviceMethod[];
-    readonly signals: DeviceSignal[];
+    public readonly id: string;
+    public readonly version: string;
+    public readonly properties: DeviceProperty[];
+    public readonly methods: DeviceMethod[];
 }
 
 export abstract class DeviceCharacteristic {
-    readonly name: string;
+    public readonly name: string;
 }
 
 export class DeviceProperty extends DeviceCharacteristic {
-    readonly canRead: boolean;
-    readonly canWrite: boolean;
-    readonly propertyType: Schema;
+    public readonly canRead: boolean;
+    public readonly canWrite: boolean;
+    public readonly canNotify: boolean;
+    public readonly propertyType: Schema;
 }
 
 export class DeviceMethod extends DeviceCharacteristic {
-    readonly parameters: DeviceParameter[];
-    readonly returnType: Schema;
+    public readonly parameters: DeviceParameter[];
+    public readonly returnType: Schema;
 }
 
 export class DeviceParameter extends DeviceCharacteristic {
-    readonly parameterType: Schema;
-}
-
-export class DeviceSignal {
-    readonly signalType: Schema;
+    public readonly parameterType: Schema;
 }

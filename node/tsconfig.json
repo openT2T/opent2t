@@ -1,9 +1,11 @@
 {
     "compilerOptions": {
+        "pretty": true,
         "rootDir": "src",
         "outDir": "build",
         "module": "commonjs",
         "target": "es6",
+        "declaration": true,
         "noImplicitAny": true,
         "noImplicitReturns": true,
         "strictNullChecks": true,

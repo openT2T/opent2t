@@ -1,8 +1,9 @@
 {
-  "name": "opent2t",
+  "name": "opent2t-lib",
   "version": "0.1.0",
   "description": "Open Translators to Things",
-  "main": "src/index.js",
+  "main": "build/index.js",
+  "typings": "build/index.d.ts",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
   },

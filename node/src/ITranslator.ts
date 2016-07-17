@@ -1,23 +1,25 @@
 
+/**
+ * Interface that all translators implement.
+ */
 export interface ITranslator {
     /**
-     * Fully-qualified translator identifier, for example org.example.widgettranslator.
-     */
-    readonly id: string;
-
-    /**
-     * Mapping from interface identifiers to interface versions, indicating the
-     * set of interfaces and versions of each interface supported by the translator.
-     * (A translator may not support multiple versions of the same interface.)
-     */
-    readonly interfaces: { [interfaceId: string]: string; };
-
-    /**
      * Creates an instance of the device, given device properties obtained from onboarding.
+     * This method is optionally async, meaning it may return either an immediate device
+     * instance or a promise for a device instance.
      */
     createDevice(deviceProps: Object): IDevice | Promise<IDevice>;
 }
 
+/**
+ * Interface that all device instances (created by translators) implement.
+ */
 export interface IDevice {
-    as(interfaceId: string): Object;
+    /**
+     * Optional method on a device that requests a specific interface to the device.
+     * If the method is not available then properties and methods for all implemented
+     * interfaces must be on the device object itself; in that case there must be no
+     * naming conflict among the interfaces.
+     */
+    as?(interfaceId: string): Object;
 }
