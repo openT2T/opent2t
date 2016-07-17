@@ -7,9 +7,9 @@ import { IDevice } from "./ITranslator";
 export class DeviceAccessor {
     public static getProperty(
             device: IDevice,
-            interfaceId: string,
+            interfaceName: string,
             propertyName: string): Promise<any> {
-        let deviceInterface = DeviceAccessor.getDeviceInterface(device, interfaceId);
+        let deviceInterface = DeviceAccessor.getDeviceInterface(device, interfaceName);
         DeviceAccessor.validateMemberName(propertyName);
 
         return new Promise<any>((resolve, reject) => {
@@ -29,7 +29,7 @@ export class DeviceAccessor {
 
             if (typeof value === "undefined") {
                 reject(new TypeError("Property '" + propertyName + "' getter " +
-                    "for interface " + interfaceId + " not implemented by device."));
+                    "for interface " + interfaceName + " not implemented by device."));
             } else if (typeof value === "object" && typeof value.then === "function") {
                 value.then((asyncValue: any) => {
                     resolve(asyncValue);
@@ -44,10 +44,10 @@ export class DeviceAccessor {
 
     public static setProperty(
             device: IDevice,
-            interfaceId: string,
+            interfaceName: string,
             propertyName: string,
             value: any): Promise<void> {
-        let deviceInterface = DeviceAccessor.getDeviceInterface(device, interfaceId);
+        let deviceInterface = DeviceAccessor.getDeviceInterface(device, interfaceName);
         DeviceAccessor.validateMemberName(propertyName);
 
         return new Promise<any>((resolve, reject) => {
@@ -62,7 +62,7 @@ export class DeviceAccessor {
                     setPropertyMethod = deviceInterface[methodName + "Async"];
                     if (typeof setPropertyMethod !== "function") {
                         reject(new TypeError("Property '" + propertyName + "' setter " +
-                            "for interface " + interfaceId + " not implemented by device."));
+                            "for interface " + interfaceName + " not implemented by device."));
                     }
                 }
             }
@@ -82,10 +82,10 @@ export class DeviceAccessor {
 
     public static addPropertyListener(
             device: IDevice,
-            interfaceId: string,
+            interfaceName: string,
             propertyName: string,
             callback: (value: any) => void): void {
-        let deviceInterface = DeviceAccessor.getDeviceInterface(device, interfaceId);
+        let deviceInterface = DeviceAccessor.getDeviceInterface(device, interfaceName);
         DeviceAccessor.validateMemberName(propertyName);
 
         let methodName = "add" + DeviceAccessor.capitalize(propertyName) + "Listener";
@@ -93,7 +93,7 @@ export class DeviceAccessor {
 
         if (typeof addListenerMethod !== "function") {
             throw new TypeError("Property '" + propertyName + "' notifier " +
-                "for interface " + interfaceId + " not implemented by device.");
+                "for interface " + interfaceName + " not implemented by device.");
         } else {
             addListenerMethod.call(deviceInterface, callback);
         }
@@ -101,10 +101,10 @@ export class DeviceAccessor {
 
     public static removePropertyListener(
             device: IDevice,
-            interfaceId: string,
+            interfaceName: string,
             propertyName: string,
             callback: (value: any) => void): void {
-        let deviceInterface = DeviceAccessor.getDeviceInterface(device, interfaceId);
+        let deviceInterface = DeviceAccessor.getDeviceInterface(device, interfaceName);
         DeviceAccessor.validateMemberName(propertyName);
 
         let methodName = "remove" + DeviceAccessor.capitalize(propertyName) + "Listener";
@@ -112,7 +112,7 @@ export class DeviceAccessor {
 
         if (typeof removeListenerMethod !== "function") {
             throw new TypeError("Property '" + propertyName + "' notifier removal " +
-                "for interface " + interfaceId + " not implemented by device.");
+                "for interface " + interfaceName + " not implemented by device.");
         } else {
             removeListenerMethod.call(deviceInterface, callback);
         }
@@ -120,10 +120,10 @@ export class DeviceAccessor {
 
     public static invokeMethod(
             device: IDevice,
-            interfaceId: string,
+            interfaceName: string,
             methodName: string,
             args: any[]): Promise<any> {
-        let deviceInterface = DeviceAccessor.getDeviceInterface(device, interfaceId);
+        let deviceInterface = DeviceAccessor.getDeviceInterface(device, interfaceName);
         DeviceAccessor.validateMemberName(methodName);
         if (!Array.isArray(args)) {
             throw new TypeError("Args argument must be an array.");
@@ -133,7 +133,7 @@ export class DeviceAccessor {
             let method: any = deviceInterface[methodName];
             if (typeof method !== "function") {
                 reject(new TypeError("Method '" + methodName + "' " +
-                    "for interface " + interfaceId + " not implemented by device."));
+                    "for interface " + interfaceName + " not implemented by device."));
             } else {
                 let result = method.apply(deviceInterface, args);
                 if (typeof result === "object" && typeof result.then === "function") {
@@ -149,7 +149,7 @@ export class DeviceAccessor {
         });
     }
 
-    private static getDeviceInterface(device: IDevice, interfaceId: string): {[key: string]: any} {
+    private static getDeviceInterface(device: IDevice, interfaceName: string): {[key: string]: any} {
         if (typeof device !== "object") {
             throw new TypeError("Device argument must be an object.");
         }
@@ -158,9 +158,9 @@ export class DeviceAccessor {
             return <{[key: string]: any}> device;
         }
 
-        let deviceInterface = device.as(interfaceId);
+        let deviceInterface = device.as(interfaceName);
         if (typeof deviceInterface !== "object") {
-            throw new TypeError("Interface not implemented by device: " + interfaceId);
+            throw new TypeError("Interface not implemented by device: " + interfaceName);
         }
 
         return <{[key: string]: any}> deviceInterface;

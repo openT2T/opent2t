@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!DOCTYPE node PUBLIC "-//freedesktop//DTD D-BUS Object Introspection 1.0//EN" "http://standards.freedesktop.org/dbus/introspect-1.0.dtd"[]>
+<node>
+  <interface name="org.opent2t.test.A">
+    <description>Interface A description</description>
+    <property name="propA1" type="u" access="read">
+      <description>Property A1 description</description>
+    </property>
+    <property name="propA2" type="s" access="readwrite">
+      <description>Property A2 description</description>
+    </property>
+    <method name="methodA1">
+      <description>Method A1 description</description>
+    </method>
+    <method name="methodA2">
+      <description>Method A2 description</description>
+      <arg name="arg1" type="u" direction="in" />
+    </method>
+    <signal name="signalA1">
+      <description>Signal A1 description</description>
+      <arg name="message" type="s" direction="out"/>
+    </signal>
+  </interface>
+</node>

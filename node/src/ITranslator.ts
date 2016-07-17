@@ -21,5 +21,5 @@ export interface IDevice {
      * interfaces must be on the device object itself; in that case there must be no
      * naming conflict among the interfaces.
      */
-    as?(interfaceId: string): Object;
+    as?(interfaceName: string): Object;
 }

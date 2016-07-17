@@ -1,22 +1,16 @@
 {
     "compilerOptions": {
         "pretty": true,
-        "rootDir": "src",
-        "outDir": "lib",
         "module": "commonjs",
         "target": "es6",
-        "declaration": true,
-        "noImplicitAny": true,
         "noImplicitReturns": true,
         "strictNullChecks": true,
-        "sourceMap": true,
         "baseUrl": ".",
         "paths": {
-            "jsonschema": [ "typings/jsonschema.d.ts" ]
+            "jsonschema": [ "../typings/jsonschema.d.ts" ]
         }
     },
     "exclude": [
-        "test",
         "node_modules"
     ]
 }
