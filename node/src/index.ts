@@ -1,23 +1,23 @@
 
-import { AllJoynDeviceInterfaceConverter } from "./AllJoynDeviceInterfaceConverter";
+import { AllJoynConverter } from "./AllJoynConverter";
 import { DeviceAccessor } from "./DeviceAccessor";
 import { DeviceCharacteristic, DeviceInterface, DeviceMethod, DeviceProperty }
     from "./DeviceInterface";
 import { IDeviceInterfaceConverter } from "./IDeviceInterfaceConverter";
 import { IDevice, ITranslator } from "./ITranslator";
 import { TranslatorInfo } from "./TranslatorInfo";
-import { TypeScriptDeviceInterfaceConverter } from "./TypeScriptDeviceInterfaceConverter";
+import { TypeScriptConverter } from "./TypeScriptConverter";
 
 export {
-    ITranslator,
-    IDevice,
-    TranslatorInfo,
-    DeviceInterface,
-    DeviceCharacteristic,
-    DeviceProperty,
-    DeviceMethod,
+    AllJoynConverter,
     DeviceAccessor,
+    DeviceCharacteristic,
+    DeviceInterface,
+    DeviceMethod,
+    DeviceProperty,
+    IDevice,
     IDeviceInterfaceConverter,
-    AllJoynDeviceInterfaceConverter,
-    TypeScriptDeviceInterfaceConverter,
+    ITranslator,
+    TranslatorInfo,
+    TypeScriptConverter,
 };

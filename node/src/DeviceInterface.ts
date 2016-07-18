@@ -21,9 +21,9 @@ export class DeviceProperty extends DeviceCharacteristic {
 
 export class DeviceMethod extends DeviceCharacteristic {
     public readonly parameters: DeviceParameter[];
-    public readonly result: DeviceParameter | null;
 }
 
 export class DeviceParameter extends DeviceCharacteristic {
     public readonly parameterType: Schema;
+    public readonly isOut: boolean;
 }
