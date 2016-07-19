@@ -14,5 +14,5 @@ export interface IDeviceInterfaceConverter {
     /**
      * Writes a device interface specification to a file.
      */
-    writeAsync?(deviceInterface: DeviceInterface, targetFilePath: string): Promise<void>;
+    writeAsync?(deviceInterface: DeviceInterface, targetDirectoryPath: string): Promise<void>;
 }

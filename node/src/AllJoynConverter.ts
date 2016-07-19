@@ -28,7 +28,7 @@ export class AllJoynConverter implements IDeviceInterfaceConverter {
         return this.parseAllJoynInterface(xmlDoc.node.interface[0]);
     }
 
-    public writeAsync(deviceInterface: DeviceInterface, targetFilePath: string): Promise<void> {
+    public writeAsync(deviceInterface: DeviceInterface, targetDirectoryPath: string): Promise<void> {
         return new Promise<void>((resolve, reject) => {
             reject(new Error("not implemented"));
         });

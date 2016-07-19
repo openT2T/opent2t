@@ -14,7 +14,9 @@
     </method>
     <method name="methodA2">
       <description>Method A2 description</description>
-      <arg name="arg1" type="u" direction="in" />
+      <arg name="param1" type="u" direction="in" />
+      <arg name="param2" type="s" direction="in" />
+      <arg name="result" type="b" direction="out" />
     </method>
     <signal name="signalA1">
       <description>Signal A1 description</description>

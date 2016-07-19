@@ -6,7 +6,7 @@
     <property name="propB2" type="s" access="readwrite" />
     <method name="methodB1" />
     <method name="methodB2">
-      <arg name="arg1" type="u" direction="in" />
+      <arg name="param1" type="s" direction="in" />
     </method>
     <signal name="signalB">
       <arg name="message" type="s" direction="out"/>

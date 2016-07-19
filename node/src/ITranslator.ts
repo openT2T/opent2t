@@ -8,7 +8,7 @@ export interface ITranslator {
      * This method is optionally async, meaning it may return either an immediate device
      * instance or a promise for a device instance.
      */
-    createDevice(deviceProps: Object): IDevice | Promise<IDevice>;
+    createDevice(deviceProps: any): IDevice | Promise<IDevice>;
 }
 
 /**
@@ -21,5 +21,5 @@ export interface IDevice {
      * interfaces must be on the device object itself; in that case there must be no
      * naming conflict among the interfaces.
      */
-    as?(interfaceName: string): Object;
+    as?(interfaceName: string): any;
 }
