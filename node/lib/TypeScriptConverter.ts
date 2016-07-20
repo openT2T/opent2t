@@ -29,22 +29,21 @@ export class TypeScriptConverter implements IDeviceInterfaceConverter {
             ts += "namespace " + ns + " {\n";
         }
 
-        ts += "  export interface " + className + " {\n\n";
+        ts += "  export interface " + className;
 
-        deviceInterface.properties.forEach((p: DeviceProperty) => {
-            if (p.canRead || p.canWrite) {
-                ts += this.writeProperty(p) + "\n";
-            }
+        if (deviceInterface.declaredReferences.length > 0) {
+            ts += " extends " + deviceInterface.declaredReferences
+                    .map((i: DeviceInterface) => i.name).join(", ");
+        }
+
+        ts + " {\n\n";
+
+        deviceInterface.declaredProperties.forEach((p: DeviceProperty) => {
+            ts += this.writeProperty(p) + "\n";
         });
 
-        deviceInterface.methods.forEach((m: DeviceMethod) => {
+        deviceInterface.declaredMethods.forEach((m: DeviceMethod) => {
             ts += this.writeMethod(m);
-        });
-
-        deviceInterface.properties.forEach((p: DeviceProperty) => {
-            if (p.canNotify) {
-                ts += this.writeSignal(p);
-            }
         });
 
         ts += "  }\n";
@@ -65,21 +64,12 @@ export class TypeScriptConverter implements IDeviceInterfaceConverter {
         let type = this.jsonSchemaToTypeScriptType(property.propertyType);
         if (property.canRead && !property.canWrite) {
             return comment + "    readonly " + property.name + ": " + type + ";\n";
-        } else {
+        } else if (property.canRead || property.canWrite) {
             // TypeScript doesn't support write-only property in interfaces.
             return comment + "    " + property.name + ": " + type + ";\n";
+        } else {
+            return "";
         }
-    }
-
-    private writeSignal(signal: DeviceProperty): string {
-        let type = this.jsonSchemaToTypeScriptType(signal.propertyType);
-        let capitalName = TypeScriptConverter.capitalize(signal.name);
-        let comment = (signal.canRead || signal.canWrite) ?
-            "    /**\n     * Register a callback for " + signal.name + " notifications\n     */\n" :
-            this.writeDescription(signal);
-        return comment +
-            "    add" + capitalName + "Listener(callback: (value: " + type + ") => void): void;\n" +
-            "    remove" + capitalName + "Listener(callback: (value: " + type + ") => void): void;\n\n";
     }
 
     private writeMethod(method: DeviceMethod): string {

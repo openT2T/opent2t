@@ -43,32 +43,34 @@ export class AllJoynConverter implements IDeviceInterfaceConverter {
 
         if (Array.isArray(interfaceElement.property)) {
             interfaceElement.property.forEach((propertyElement: any) => {
-                this.mergeProperty(properties, this.parseAllJoynProperty(propertyElement));
+                this.mergeProperty(properties,
+                        this.parseAllJoynProperty(propertyElement, interfaceName));
             });
         }
 
         if (Array.isArray(interfaceElement.signal)) {
             interfaceElement.signal.forEach((signalElement: any) => {
-                this.mergeProperty(properties, this.parseAllJoynSignal(signalElement));
+                this.mergeProperty(properties,
+                        this.parseAllJoynSignal(signalElement, interfaceName));
             });
         }
 
         if (Array.isArray(interfaceElement.method)) {
             interfaceElement.method.forEach((methodElement: any) => {
-                methods.push(this.parseAllJoynMethod(methodElement));
+                methods.push(this.parseAllJoynMethod(methodElement, interfaceName));
             });
         }
 
         return {
             description: this.getOptionalElement(interfaceElement, "description"),
-            methods: methods,
+            declaredMethods: methods,
+            declaredProperties: properties,
+            declaredReferences: [],
             name: interfaceName,
-            properties: properties,
-            version: "",
         };
     }
 
-    private parseAllJoynProperty(propertyElement: any): DeviceProperty {
+    private parseAllJoynProperty(propertyElement: any, interfaceName: string): DeviceProperty {
         let propertyName: string = this.getRequiredAttribute(
                 propertyElement, "name", "/node/interface/property");
         let propertyAccess: string = this.getRequiredAttribute(
@@ -81,12 +83,13 @@ export class AllJoynConverter implements IDeviceInterfaceConverter {
             canRead: (propertyAccess === "read" || propertyAccess === "readwrite"),
             canWrite: (propertyAccess === "write" || propertyAccess === "readwrite"),
             description: this.getOptionalElement(propertyElement, "description"),
+            interfaceName: interfaceName,
             name: propertyName,
             propertyType: this.allJoynTypeToJsonSchema(propertyType),
         };
     }
 
-    private parseAllJoynSignal(signalElement: any): DeviceProperty {
+    private parseAllJoynSignal(signalElement: any, interfaceName: string): DeviceProperty {
         let signalName: string = this.getRequiredAttribute(
                 signalElement, "name", "/node/interface/signal");
 
@@ -121,12 +124,13 @@ export class AllJoynConverter implements IDeviceInterfaceConverter {
             canRead: false,
             canWrite: false,
             description: this.getOptionalElement(signalElement, "description"),
+            interfaceName: interfaceName,
             name: signalName,
             propertyType: signalType,
         };
     }
 
-    private parseAllJoynMethod(methodElement: any): DeviceMethod {
+    private parseAllJoynMethod(methodElement: any, interfaceName: string): DeviceMethod {
         let methodName: string = this.getRequiredAttribute(
                 methodElement, "name", "/node/interface/method");
 
@@ -151,6 +155,7 @@ export class AllJoynConverter implements IDeviceInterfaceConverter {
 
         return {
             description: this.getOptionalElement(methodElement, "description"),
+            interfaceName: interfaceName,
             name: methodName,
             parameters: parameters,
         };
@@ -170,6 +175,7 @@ export class AllJoynConverter implements IDeviceInterfaceConverter {
                 canRead: matchingProperty.canRead || property.canRead,
                 canWrite: matchingProperty.canWrite || property.canWrite,
                 description: matchingProperty.description || property.description,
+                interfaceName: matchingProperty.interfaceName,
                 name: matchingProperty.name,
                 propertyType: matchingProperty.propertyType,
             });

@@ -2,10 +2,10 @@
   "name": "opent2t-lib",
   "version": "0.1.0",
   "description": "Open Translators to Things",
-  "main": "lib/index.js",
-  "typings": "lib/index.d.ts",
+  "main": "build/lib/index.js",
+  "typings": "build/lib/index.d.ts",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "tsc && ava --verbose"
   },
   "repository": {
     "type": "git",
@@ -20,5 +20,15 @@
   "dependencies": {
     "jsonschema": "^1.1.0",
     "xml2js": "^0.4.17"
+  },
+  "devDependencies": {
+    "ava": "^0.15.2",
+    "tslint": "^3.14.0-dev.0",
+    "typescript": "^2.0.0"
+  },
+  "ava": {
+    "files": [
+      "build/test/*.js"
+    ]
   }
 }

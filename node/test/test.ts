@@ -1,50 +1,137 @@
-/// <reference path="../typings/index.d.ts" />
+
+import test from 'ava';
 
 import { AllJoynConverter } from "../lib/AllJoynConverter";
 import { TypeScriptConverter } from "../lib/TypeScriptConverter";
+import { DeviceInterface } from "../lib/DeviceInterface";
 
 import * as fs from "fs";
 import * as path from "path";
 
-(async function test(): Promise<void> { try {
+// Move from /build/test back to /test
+process.chdir("../../test");
 
-function testAllJoynTypeToJsonSchema(type: string) {
-    let ajConverter = new AllJoynConverter();
-    let schema = ajConverter.allJoynTypeToJsonSchema(type);
-    console.log("\"" + type + "\" => " + JSON.stringify(schema, null, 2));
-}
+let ajConverter = new AllJoynConverter();
+let allJoynTypeToJsonSchema = ajConverter.allJoynTypeToJsonSchema.bind(ajConverter);
 
-testAllJoynTypeToJsonSchema("(ss)");
-testAllJoynTypeToJsonSchema("(s(is))");
-testAllJoynTypeToJsonSchema("as");
-testAllJoynTypeToJsonSchema("a{ss}");
-testAllJoynTypeToJsonSchema("a(ss)");
-testAllJoynTypeToJsonSchema("a{s(is)}");
-testAllJoynTypeToJsonSchema("a{s(i(ss))}");
+test("AllJoyn type to JSON schema: (ss)", t => {
+    t.deepEqual(allJoynTypeToJsonSchema("(ss)"), {
+        "type": "object",
+        "properties": {
+            "_0": {
+                "type": "string"
+            },
+            "_1": {
+                "type": "string"
+            }
+        }
+    });
+});
+test("AllJoyn type to JSON schema: (ss)", t => {
+    t.deepEqual(allJoynTypeToJsonSchema("(s(is))"), {
+        "type": "object",
+        "properties": {
+            "_0": {
+                "type": "string"
+            },
+            "_1": {
+                "type": "object",
+                "properties": {
+                    "_0": {
+                        "type": "integer",
+                        "minimum": -2147483648,
+                        "maximum": 2147483647
+                    },
+                    "_1": {
+                        "type": "string"
+                    }
+                }
+            }
+        }
+    });
+});
+test("AllJoyn type to JSON schema: as", t => {
+    t.deepEqual(allJoynTypeToJsonSchema("as"), {
+        "type": "array",
+        "items": {
+            "type": "string"
+        }
+    });
+});
+test("AllJoyn type to JSON schema: a{ss}", t => {
+    t.deepEqual(allJoynTypeToJsonSchema("a{ss}"), {
+        "type": "object",
+        "additionalProperties": {
+            "type": "string"
+        }
+    });
+});
+test("AllJoyn type to JSON schema: a(ss)", t => {
+    t.deepEqual(allJoynTypeToJsonSchema("a(ss)"), {
+        "type": "array",
+        "items": {
+            "type": "object",
+                "properties": {
+                "_0": {
+                    "type": "string"
+                },
+                "_1": {
+                    "type": "string"
+                }
+            }
+        }
+    });
+});
+test("AllJoyn type to JSON schema: a{s(is)}", t => {
+    t.deepEqual(allJoynTypeToJsonSchema("a{s(is)}"), {
+        "type": "object",
+        "additionalProperties": {
+            "type": "object",
+            "properties": {
+                "_0": {
+                    "type": "integer",
+                    "minimum": -2147483648,
+                    "maximum": 2147483647
+                },
+                "_1": {
+                    "type": "string"
+                }
+            }
+        }
+    });
+});
+test("AllJoyn type to JSON schema: a{s(i(ss))}", t => {
+    t.deepEqual(allJoynTypeToJsonSchema("a{s(i(ss))}"), {
+        "type": "object",
+        "additionalProperties": {
+            "type": "object",
+            "properties": {
+                "_0": {
+                    "type": "integer",
+                    "minimum": -2147483648,
+                    "maximum": 2147483647
+                },
+                "_1": {
+                    "type": "object",
+                    "properties": {
+                        "_0": {
+                            "type": "string"
+                        },
+                        "_1": {
+                            "type": "string"
+                        }
+                    }
+                }
+            }
+        }
+    });
+});
 
-async function testAllJoynSchemaToTypeScript(schemaFilePath: string, outDirPath: string, display: boolean) {
-    let ajConverter = new AllJoynConverter();
-    let deviceInterface = await ajConverter.readAsync(schemaFilePath);
-    if (display) {
-        console.log("AllJoyn schema to DeviceInterface:");
-        console.log(JSON.stringify(deviceInterface, null, "  "));
-    }
-
-    let tsConverter = new TypeScriptConverter();
-    await tsConverter.writeAsync(deviceInterface, outDirPath);
-    let ts = fs.readFileSync(path.join(outDirPath, deviceInterface.name + ".ts"), "utf8");
-    if (display) {
-        console.log("DeviceInterface to TypeScript:");
-        console.log(ts);
-    }
-}
-
-let outDirPath = "./out";
-if (!fs.statSync(outDirPath)) fs.mkdirSync(outDirPath);
-await testAllJoynSchemaToTypeScript("./schemas/A.xml", outDirPath, true);
-await testAllJoynSchemaToTypeScript("./schemas/B.xml", outDirPath, false);
-await testAllJoynSchemaToTypeScript("./schemas/C.xml", outDirPath, false);
-
-} catch (err) {
-    console.log(err.stack || err.message);
-}})();
+test("AllJoyn schema: A", async t => {
+    let deviceInterface: DeviceInterface = await ajConverter.readAsync("./schemas/A.xml");
+    t.is(typeof deviceInterface, "object");
+    t.is(deviceInterface.name, "org.opent2t.test.A");
+    t.truthy(deviceInterface.description);
+    t.is(deviceInterface.declaredProperties.length, 3);
+    t.is(deviceInterface.declaredMethods.length, 2);
+});

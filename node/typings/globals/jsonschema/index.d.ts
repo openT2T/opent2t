@@ -1,8 +1,11 @@
-/*
-This is type definition for typescript.
-This is for library users. Thus, properties and methods for internal use is omitted.
- */
-export declare class Validator {
+// Source: https://raw.githubusercontent.com/tdegrunt/jsonschema/master/lib/index.d.ts
+declare module 'jsonschema' {
+
+export = jsonschema;
+
+namespace jsonschema {
+
+class Validator {
     constructor();
     customFormats: CustomFormat[];
     schemas: {[id:string]: Schema};
@@ -14,7 +17,7 @@ export declare class Validator {
     validate(instance: any, schema: Schema, options?: Options, ctx?: SchemaContext): ValidatorResult;
 }
 
-export declare class ValidatorResult {
+class ValidatorResult {
     constructor(instance: any, schema: Schema, options: Options, ctx: SchemaContext)
     instance: any;
     schema: Schema;
@@ -27,7 +30,7 @@ export declare class ValidatorResult {
     toString(): string;
 }
 
-export declare class ValidationError {
+class ValidationError {
     constructor(message?: string, instance?: any, schema?: Schema, propertyPath?: any, name?: string, argument?: any);
     property: string;
     message: string;
@@ -38,15 +41,15 @@ export declare class ValidationError {
     toString(): string;
 }
 
-export declare class SchemaError extends Error{
+class SchemaError extends Error{
     constructor(msg: string, schema: Schema);
     schema: Schema;
     message: string;
 }
 
-export declare function validate(instance: any, schema: any, options?: Options): ValidatorResult
+function validate(instance: any, schema: any, options?: Options): ValidatorResult
 
-export interface Schema {
+interface Schema {
     id?: string
     $schema?: string
     title?: string
@@ -88,7 +91,7 @@ export interface Schema {
     not?: Schema
 }
 
-export interface Options {
+interface Options {
     skipAttributes?: string[];
     allowUnknownAttributes?: boolean;
     rewrite?: RewriteFunction;
@@ -96,11 +99,11 @@ export interface Options {
     base?: string;
 }
 
-export interface RewriteFunction {
+interface RewriteFunction {
     (instance: any, schema: Schema, options: Options, ctx: SchemaContext): any;
 }
 
-export interface SchemaContext {
+interface SchemaContext {
     schema: Schema;
     options: Options;
     propertyPath: string;
@@ -108,16 +111,19 @@ export interface SchemaContext {
     schemas: {[base:string]: Schema};
 }
 
-export interface CustomFormat {
+interface CustomFormat {
     (input: any): boolean;
 }
 
-export interface CustomProperty {
+interface CustomProperty {
     (instance: any, schema: Schema, options: Options, ctx: SchemaContext): string|ValidatorResult;
 }
 
-export interface ErrorDetail {
+interface ErrorDetail {
     message: string;
     name: string;
     argument: string;
+}
+
+}
 }
