@@ -63,9 +63,9 @@ export class AllJoynConverter implements IDeviceInterfaceConverter {
 
         return {
             description: this.getOptionalElement(interfaceElement, "description"),
-            declaredMethods: methods,
-            declaredProperties: properties,
-            declaredReferences: [],
+            methods: methods,
+            properties: properties,
+            references: [],
             name: interfaceName,
         };
     }

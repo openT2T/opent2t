@@ -132,6 +132,6 @@ test("AllJoyn schema: A", async t => {
     t.is(typeof deviceInterface, "object");
     t.is(deviceInterface.name, "org.opent2t.test.A");
     t.truthy(deviceInterface.description);
-    t.is(deviceInterface.declaredProperties.length, 3);
-    t.is(deviceInterface.declaredMethods.length, 2);
+    t.is(deviceInterface.properties.length, 3);
+    t.is(deviceInterface.methods.length, 2);
 });

@@ -17,58 +17,19 @@ export class DeviceInterface extends DeviceCharacteristic {
     /**
      * List of properties declared by this interface.
      */
-    public readonly declaredProperties: DeviceProperty[];
+    public readonly properties: DeviceProperty[];
 
     /**
      * List of methods declared by this interface.
      */
-    public readonly declaredMethods: DeviceMethod[];
+    public readonly methods: DeviceMethod[];
 
     /**
      * List of referenced interfaces declared by this interface. All properties and
      * methods from directly and indirectly referenced interfaces are effectively
      * included in this interface. (It's conceptually similar to interface inheritance.)
      */
-    public readonly declaredReferences: DeviceInterface[];
-
-    /**
-     * Gets a list of all properties either declared by or referenced by this interface.
-     */
-    public static getAllProperties(deviceInterface: DeviceInterface): DeviceProperty[] {
-        let allProperties: DeviceProperty[] = [];
-        DeviceInterface.getAllReferences(deviceInterface).forEach((i: DeviceInterface) => {
-            allProperties = allProperties.concat(DeviceInterface.getAllProperties(i));
-        });
-        return allProperties;
-    }
-
-    /**
-     * List of all methods either declared by or referenced by this interface.
-     */
-    public static getAllMethods(deviceInterface: DeviceInterface): DeviceMethod[] {
-        let allMethods: DeviceMethod[] = [];
-        DeviceInterface.getAllReferences(deviceInterface).forEach((i: DeviceInterface) => {
-            allMethods = allMethods.concat(DeviceInterface.getAllMethods(i));
-        });
-        return allMethods;
-    }
-
-    /**
-     * List of all interfaces directly or indirectly referenced by this one,
-     * including the current interface.
-     */
-    public static getAllReferences(deviceInterface: DeviceInterface): DeviceInterface[] {
-        let allReferences: DeviceInterface[] = deviceInterface.declaredReferences;
-        deviceInterface.declaredReferences.forEach((i: DeviceInterface) => {
-            allReferences = allReferences.concat(DeviceInterface.getAllReferences(i));
-        });
-        allReferences = allReferences.filter((i: DeviceInterface, index: number) => {
-            // Filter out duplicate items in the list.
-            return allReferences.findIndex(
-                    (j: DeviceInterface) => j.name === i.name) === index;
-        });
-        return allReferences;
-    }
+    public readonly references: DeviceInterface[];
 }
 
 export class DeviceProperty extends DeviceCharacteristic {

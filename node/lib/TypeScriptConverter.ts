@@ -31,18 +31,17 @@ export class TypeScriptConverter implements IDeviceInterfaceConverter {
 
         ts += "  export interface " + className;
 
-        if (deviceInterface.declaredReferences.length > 0) {
-            ts += " extends " + deviceInterface.declaredReferences
-                    .map((i: DeviceInterface) => i.name).join(", ");
+        if (deviceInterface.references.length > 0) {
+            ts += " extends " + deviceInterface.references.join(", ");
         }
 
         ts + " {\n\n";
 
-        deviceInterface.declaredProperties.forEach((p: DeviceProperty) => {
+        deviceInterface.properties.forEach((p: DeviceProperty) => {
             ts += this.writeProperty(p) + "\n";
         });
 
-        deviceInterface.declaredMethods.forEach((m: DeviceMethod) => {
+        deviceInterface.methods.forEach((m: DeviceMethod) => {
             ts += this.writeMethod(m);
         });
 
