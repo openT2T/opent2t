@@ -2,8 +2,8 @@
   "name": "opent2t-lib",
   "version": "0.1.0",
   "description": "Open Translators to Things",
-  "main": "build/lib/index.js",
-  "typings": "build/lib/index.d.ts",
+  "main": "build/lib",
+  "typings": "build/lib",
   "scripts": {
     "test": "tsc && ava --verbose"
   },
@@ -19,6 +19,7 @@
   "homepage": "https://github.com/opent2t/opent2t#readme",
   "dependencies": {
     "jsonschema": "^1.1.0",
+    "mz": "^2.4.0",
     "xml2js": "^0.4.17"
   },
   "devDependencies": {
