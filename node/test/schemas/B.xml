@@ -2,11 +2,13 @@
 <!DOCTYPE node PUBLIC "-//freedesktop//DTD D-BUS Object Introspection 1.0//EN" "http://standards.freedesktop.org/dbus/introspect-1.0.dtd"[]>
 <node>
   <interface name="org.opent2t.test.B">
-    <property name="propB1" type="u" access="read" />
+    <property name="propA1" type="u" access="read" />
     <property name="propB2" type="s" access="readwrite" />
     <method name="methodB1" />
     <method name="methodB2">
-      <arg name="param1" type="s" direction="in" />
+      <arg name="param1" type="u" direction="in" />
+      <arg name="param2" type="s" direction="in" />
+      <arg name="result" type="b" direction="out" />
     </method>
     <signal name="signalB">
       <arg name="message" type="s" direction="out"/>

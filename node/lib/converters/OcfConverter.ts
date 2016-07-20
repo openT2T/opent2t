@@ -1,6 +1,7 @@
 
 import { DeviceInterface, DeviceMethod, DeviceParameter, DeviceProperty } from "../DeviceInterface";
 import { Schema } from "jsonschema";
+
 import * as fs from "mz/fs";
 
 /**

@@ -38,6 +38,8 @@ export class AllJoynConverter {
     }
 
     public static writeDeviceInterfacesAsync(deviceInterfaces: DeviceInterface[]): Promise<string> {
+        // TODO: Write AllJoyn interface XML.
+        //new Builder({}).buildObject();
         return new Promise<string>((resolve, reject) => {
             reject(new Error("not implemented"));
         });
@@ -97,7 +99,57 @@ export class AllJoynConverter {
     }
 
     public static jsonSchemaToAllJoynType(schema: Schema): string {
-        throw new Error("Not implemented");
+        if (!schema.type) {
+            throw new Error("A type property is required in the schema.");
+        }
+
+        switch (schema.type) {
+            case "boolean": return "b";
+            case "string": return "s";
+            case "number": return "d"; // double
+            case "integer":
+                let min = schema.minimum;
+                let max = schema.maximum;
+                if (typeof min === "number" || typeof max === "number") {
+                    // Determine the kind of integer based on the min/max values.
+                    if (min === 0) {
+                        if (max === Math.pow(2, 8)) return "y"; // uint8
+                        else if (max === Math.pow(2, 16)) return "q"; // uint16
+                        else if (max === Math.pow(2, 32)) return "u"; // uint32
+                        else if (max === Math.pow(2, 64)) return "t"; // uint64
+                    } else if (min < 0) {
+                        if (min === -Math.pow(2, 15) && max === Math.pow(2, 15) - 1) return "n"; // int16
+                        else if (min === -Math.pow(2, 31) && max === Math.pow(2, 31) - 1) return "i"; // int32
+                        else if (min === -Math.pow(2, 63) && max === Math.pow(2, 63) - 1) return "x"; // int64
+                    }
+                    throw new Error("Unsupported integer min/max values: " + min + "/" + max);
+                } else {
+                    // Default to int32 when no min/max was specified.
+                    return "i";
+                }
+            case "object":
+                if (typeof schema.additionalProperties === "object") {
+                    // Dictionary: the additionalProperties object specifies the value type.
+                    // The key type for JavaScript dictionaries is always string.
+                    let valueType = AllJoynConverter.jsonSchemaToAllJoynType(schema.additionalProperties);
+                    return "a{s" + valueType + "}";
+                } else {
+                    throw new Error("Non-dictionary object types are not implemented.");
+                }
+            case "array":
+                if (Array.isArray(schema.items)) {
+                    // Anonymous struct: each item in the items array specifies a struct member type.
+                    let structTypes = schema.items.map(AllJoynConverter.jsonSchemaToAllJoynType).join("");
+                    return "(" + structTypes + ")";
+                } else if (typeof schema.items === "object") {
+                    // Variable-length array: the items object specifies the array element type.
+                    return "a" + AllJoynConverter.jsonSchemaToAllJoynType(schema.items);
+                } else {
+                    throw new Error("An items property is required in the array schema.");
+                }
+            default:
+                throw new Error("Unsupported JSON schema type: " + schema.type);
+        }
     }
 
     private static parseAllJoynInterface(interfaceElement: any): DeviceInterface {
@@ -273,7 +325,9 @@ export class AllJoynConverter {
             throw new Error("Invalid struct type: " + ajType);
         }
 
-        let properties: { [name: string]: Schema } = {};
+        // AllJoyn anonymous structures are represented in JSON schema syntax as fixed-length arrays.
+        // Each item in the members array is a JSON schema for the struct member at that index.
+        let members: Schema[] = [];
         let i = 1;
         while (i < ajType.length - 1) {
             let memberPart: string | null = AllJoynConverter.getAllJoynTypePart(
@@ -282,15 +336,14 @@ export class AllJoynConverter {
                 break;
             }
 
-            let memberName = "_" + (i - 1);
             let memberSchema: Schema = AllJoynConverter.allJoynTypeToJsonSchema(memberPart);
-            properties[memberName] = memberSchema;
+            members.push(memberSchema);
             i += memberPart.length;
         }
 
         return {
-            properties: properties,
-            type: "object",
+            items: members,
+            type: "array",
         };
     }
 
