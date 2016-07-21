@@ -1,3 +1,5 @@
+// Tests for the AllJoynConverter class
+// using AVA test runner from https://github.com/avajs/ava
 
 import test from "ava";
 import { TestContext } from "ava";
@@ -137,9 +139,10 @@ test("AllJoyn type <-> JSON schema: a{s(i(ss))}", t => {
     });
 });
 
-test("AllJoyn schema: A", async t => {
+test("AllJoyn schema <-> DeviceInterface: A", async t => {
     let deviceInterfaces: DeviceInterface[] =
             await AllJoynConverter.readDeviceInterfacesFromFileAsync("./schemas/A.xml");
+
     t.true(Array.isArray(deviceInterfaces));
     t.is(deviceInterfaces.length, 1);
     let deviceInterface: DeviceInterface = deviceInterfaces[0];
@@ -153,4 +156,12 @@ test("AllJoyn schema: A", async t => {
     t.is(deviceInterface.properties[0].name, "propA1");
     t.is(typeof deviceInterface.methods[0], "object");
     t.is(deviceInterface.methods[0].name, "methodA1");
+
+    let ajXml = await AllJoynConverter.writeDeviceInterfacesAsync(deviceInterfaces);
+
+    // Verify the written XML by parsing it again and comparing to the
+    // already-verified object model.
+    let deviceInterfaces2: DeviceInterface[] =
+            await AllJoynConverter.readDeviceInterfacesAsync(ajXml);
+    t.deepEqual(deviceInterfaces2, deviceInterfaces);
 });

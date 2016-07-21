@@ -14,7 +14,7 @@ export class TranslatorInfo {
     public readonly interfaceNames: string[];
 
     /**
-     * Name of the onboarding module required by the thanslator.
+     * Name of the onboarding module required by the translator.
      */
     public readonly onboardingName: string;
 

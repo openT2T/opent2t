@@ -14,6 +14,9 @@ class TestTranslatorA {
     }
 }
 
+// Export an instance of the translator from the module.
+module.exports = new TestTranslatorA();
+
 /**
  * This translator device class implements the "org.opent2t.test.A" interface.
  * Since the interface includes a signal (notifiable property), this class
@@ -22,7 +25,8 @@ class TestTranslatorA {
 class TestDeviceA extends EventEmitter {
 
     constructor(deviceProps) {
-        super(); // Important!
+        super(); // Construct EventEmitter base
+
         this._propA1 = 123;
         this._propA2 = "test";
     }
@@ -65,5 +69,3 @@ class TestDeviceA extends EventEmitter {
         });
     }
 }
-
-module.exports = new TestTranslatorA();

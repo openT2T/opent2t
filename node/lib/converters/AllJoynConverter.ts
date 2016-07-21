@@ -11,11 +11,23 @@ import * as fs from "mz/fs";
  */
 export class AllJoynConverter {
 
+    /**
+     * Reads device interfaces from an AllJoyn schema XML file.
+     *
+     * @param {string} filePath  Path to the source XML file
+     * @returns {Promise<DeviceInterface[]>} One or more interfaces parsed from the file
+     */
     public static async readDeviceInterfacesFromFileAsync(filePath: string): Promise<DeviceInterface[]> {
         let allJoynXml = await fs.readFile(filePath, "utf8");
         return await AllJoynConverter.readDeviceInterfacesAsync(allJoynXml);
     }
 
+    /**
+     * Reads device interfaces from an AllJoyn schema XML string.
+     *
+     * @param {string} allJoynXml  Schema XML contents
+     * @returns {Promise<DeviceInterface[]>} One or more interfaces parsed from the XML
+     */
     public static async readDeviceInterfacesAsync(allJoynXml: string): Promise<DeviceInterface[]> {
         let xmlDoc = await new Promise<any>((resolve, reject) => {
             new Parser({}).parseString(allJoynXml, (err: Error, xml: any) => {
@@ -23,29 +35,54 @@ export class AllJoynConverter {
             });
         });
         if (!xmlDoc.node || !xmlDoc.node.interface) {
-            throw new Error("Missing /node/interface element.");
+            throw new Error("Missing /node/interface element(s).");
         }
 
+        // xmlDoc.node.interface is an array of 1 or more <interface> elements.
         return xmlDoc.node.interface.map((interfaceElement: any) => {
             return AllJoynConverter.parseAllJoynInterface(interfaceElement);
         });
     }
 
+    /**
+     * Writes device interfaces to an AllJoyn schema XML file.
+     *
+     * @param {DeviceInterface[]} deviceInterfaces  One or more interfaces to write
+     * @param {string} filePath Path to the target XML file
+     */
     public static async writeDeviceInterfacesToFileAsync(
             deviceInterfaces: DeviceInterface[], filePath: string): Promise<void> {
         let allJoynXml: string = await AllJoynConverter.writeDeviceInterfacesAsync(deviceInterfaces);
         await fs.writeFile(filePath, allJoynXml, "utf8");
     }
 
+    /**
+     * Writes device interfaces to an AllJoyn schema XML string.
+     *
+     * @param {DeviceInterface[]} deviceInterfaces  One or more interfaces to write
+     * @returns {Promise<string>} AllJoyn schema XML contents
+     */
     public static writeDeviceInterfacesAsync(deviceInterfaces: DeviceInterface[]): Promise<string> {
-        // TODO: Write AllJoyn interface XML.
-        //new Builder({}).buildObject();
         return new Promise<string>((resolve, reject) => {
-            reject(new Error("not implemented"));
+            let xmlBuilder: Builder = new Builder({ doctype: AllJoynConverter.doctype });
+            resolve(xmlBuilder.buildObject({
+                node: {
+                    interface: deviceInterfaces.map(AllJoynConverter.writeAllJoynInterface),
+                },
+            }));
         });
     }
 
-    public static allJoynTypeToJsonSchema(ajType: string): Schema {
+    /**
+     * Converts an AllJoyn type code (as found in the type attribute of an element) to a JSON schema.
+     *
+     * @param {string} ajType  AllJoyn type code
+     * @param {{[name: string]: Schema}} [namedTypes]  Optional mapping from type names to schemas
+     *     for named types loaded from <struct> or <dict> elements within the same XML document
+     * @returns {Schema} JSON schema
+     */
+    public static allJoynTypeToJsonSchema(
+            ajType: string, namedTypes?: {[name: string]: Schema}): Schema {
         let firstChar: string = (ajType.length < 1 ? "" : ajType[0]);
         if (!firstChar) {
             throw new Error("Missing or invalid type");
@@ -55,6 +92,9 @@ export class AllJoynConverter {
         let min: number | undefined;
         let max: number | undefined;
         switch (firstChar) {
+            case "[":
+                throw new Error("Named types are not implemented.");
+
             case "(":
                 return AllJoynConverter.allJoynStructTypeToJsonSchema(ajType);
 
@@ -64,7 +104,8 @@ export class AllJoynConverter {
                         return AllJoynConverter.allJoynDictionaryTypeToJsonSchema(ajType);
                     } else {
                         return {
-                            items: AllJoynConverter.allJoynTypeToJsonSchema(ajType.substr(1)),
+                            items: AllJoynConverter.allJoynTypeToJsonSchema(
+                                    ajType.substr(1), namedTypes),
                             type: "array",
                         };
                     }
@@ -98,9 +139,25 @@ export class AllJoynConverter {
         };
     }
 
-    public static jsonSchemaToAllJoynType(schema: Schema): string {
+    /**
+     * Converts a JSON schema to an AllJoyn type code, while extracting any included
+     * named types.
+     *
+     * @param {Schema} schema  JSON schema to be converted
+     * @param {{[name: string]: Schema}} [namedTypes]  Optional mapping from type names to
+     *     schemas for named types, that is filled in by named types in the converted schema.
+     * @returns {string}
+     */
+    public static jsonSchemaToAllJoynType(
+            schema: Schema, namedTypes?: {[name: string]: Schema}): string {
         if (!schema.type) {
             throw new Error("A type property is required in the schema.");
+        }
+
+        if (schema.title) {
+            // The title property will be used to enable round-tripping of named types
+            // specified as separate <struct> or <dict> elements in an AllJoyn schema.
+            throw new Error("Named types are not implemented.");
         }
 
         switch (schema.type) {
@@ -113,14 +170,23 @@ export class AllJoynConverter {
                 if (typeof min === "number" || typeof max === "number") {
                     // Determine the kind of integer based on the min/max values.
                     if (min === 0) {
-                        if (max === Math.pow(2, 8)) return "y"; // uint8
-                        else if (max === Math.pow(2, 16)) return "q"; // uint16
-                        else if (max === Math.pow(2, 32)) return "u"; // uint32
-                        else if (max === Math.pow(2, 64)) return "t"; // uint64
+                        if (max === Math.pow(2, 8)) {
+                            return "y"; // uint8
+                        } else if (max === Math.pow(2, 16)) {
+                            return "q"; // uint16
+                        } else if (max === Math.pow(2, 32)) {
+                            return "u"; // uint32
+                        } else if (max === Math.pow(2, 64)) {
+                            return "t"; // uint64
+                        }
                     } else if (min < 0) {
-                        if (min === -Math.pow(2, 15) && max === Math.pow(2, 15) - 1) return "n"; // int16
-                        else if (min === -Math.pow(2, 31) && max === Math.pow(2, 31) - 1) return "i"; // int32
-                        else if (min === -Math.pow(2, 63) && max === Math.pow(2, 63) - 1) return "x"; // int64
+                        if (min === -Math.pow(2, 15) && max === Math.pow(2, 15) - 1) {
+                            return "n"; // int16
+                        } else if (min === -Math.pow(2, 31) && max === Math.pow(2, 31) - 1) {
+                            return "i"; // int32
+                        } else if (min === -Math.pow(2, 63) && max === Math.pow(2, 63) - 1) {
+                            return "x"; // int64
+                        }
                     }
                     throw new Error("Unsupported integer min/max values: " + min + "/" + max);
                 } else {
@@ -139,7 +205,9 @@ export class AllJoynConverter {
             case "array":
                 if (Array.isArray(schema.items)) {
                     // Anonymous struct: each item in the items array specifies a struct member type.
-                    let structTypes = schema.items.map(AllJoynConverter.jsonSchemaToAllJoynType).join("");
+                    let structTypes = schema.items.map((itemType: Schema) => {
+                        return AllJoynConverter.jsonSchemaToAllJoynType(itemType, namedTypes);
+                    }).join("");
                     return "(" + structTypes + ")";
                 } else if (typeof schema.items === "object") {
                     // Variable-length array: the items object specifies the array element type.
@@ -151,6 +219,13 @@ export class AllJoynConverter {
                 throw new Error("Unsupported JSON schema type: " + schema.type);
         }
     }
+
+    private static doctype = {
+        pubID: "-//freedesktop//DTD D-BUS Object Introspection 1.0//EN",
+        sysID: "http://standards.freedesktop.org/dbus/introspect-1.0.dtd",
+    };
+
+    private static braces = [["[", "(", "{"], ["]", ")", "}"]];
 
     private static parseAllJoynInterface(interfaceElement: any): DeviceInterface {
         let interfaceName: string = AllJoynConverter.getRequiredAttribute(
@@ -378,28 +453,97 @@ export class AllJoynConverter {
 
         let ajTypePart: string;
         let firstChar: string = ajType[0];
-        if (firstChar === "a") {
-            ajTypePart = firstChar + AllJoynConverter.getAllJoynTypePart(ajType.substr(1));
-        } else if (firstChar === "(") {
-            let parenCount: number = 1;
-            let i = 1;
-            while (parenCount > 0 && i < ajType.length) {
-                parenCount += (ajType[i] === "(" ? 1 : ajType[i] === ")" ? -1 : 0);
-                i++;
-            }
-            ajTypePart = ajType.substr(0, i);
-        } else if (firstChar === "{") {
+        let braceIndex: number = AllJoynConverter.braces[0].indexOf(firstChar);
+
+        if (braceIndex >= 0) {
+            let matchChar: string = AllJoynConverter.braces[1][braceIndex];
             let braceCount: number = 1;
-            let i = 1;
+            let i: number = 1;
             while (braceCount > 0 && i < ajType.length) {
-                braceCount += (ajType[i] === "{" ? 1 : ajType[i] === "}" ? -1 : 0);
+                braceCount += (ajType[i] === firstChar ? 1 : ajType[i] === matchChar ? -1 : 0);
                 i++;
             }
             ajTypePart = ajType.substr(0, i);
+        } else if (firstChar === "a") {
+            ajTypePart = firstChar + AllJoynConverter.getAllJoynTypePart(ajType.substr(1));
         } else {
             ajTypePart = firstChar;
         }
 
         return ajTypePart;
+    }
+
+    private static writeAllJoynInterface(deviceInterface: DeviceInterface): any {
+        let interfaceElement: any = {
+            $: {
+                name: deviceInterface.name,
+            },
+            method: deviceInterface.methods.map((deviceMethod: DeviceMethod) => {
+                let methodElement: any = {
+                    $: {
+                        name: deviceMethod.name,
+                    },
+                    arg: deviceMethod.parameters.map((deviceParameter: DeviceParameter) => {
+                        let argElement: any = {
+                            $: {
+                                name: deviceParameter.name,
+                                direction: (deviceParameter.isOut ? "out" : "in"),
+                                type: AllJoynConverter.jsonSchemaToAllJoynType(deviceParameter.parameterType),
+                            },
+                        };
+                        if (deviceParameter.description) {
+                            argElement.description = deviceParameter.description;
+                        }
+                        return argElement;
+                    }),
+                };
+                if (deviceMethod.description) {
+                    methodElement.description = deviceMethod.description;
+                }
+                return methodElement;
+            }),
+            property: deviceInterface.properties
+                .filter((deviceProperty: DeviceProperty) => deviceProperty.canRead || deviceProperty.canWrite)
+                .map((deviceProperty: DeviceProperty) => {
+                    let propertyElement: any = {
+                        $: {
+                            access: (deviceProperty.canWrite ? "readwrite" : "read"),
+                            name: deviceProperty.name,
+                            type: AllJoynConverter.jsonSchemaToAllJoynType(deviceProperty.propertyType),
+                        },
+                    };
+                    if (deviceProperty.description) {
+                        propertyElement.description = deviceProperty.description;
+                    }
+                    return propertyElement;
+                }),
+            signal: deviceInterface.properties
+                .filter((deviceProperty: DeviceProperty) => deviceProperty.canNotify)
+                .map((deviceProperty: DeviceProperty) => {
+                    let signalElement: any = {
+                        $: {
+                            name: deviceProperty.name,
+                        },
+                        arg: [
+                            {
+                                $: {
+                                    direction: "out",
+                                    name: deviceProperty.name,
+                                    type: AllJoynConverter.jsonSchemaToAllJoynType(deviceProperty.propertyType),
+                                },
+                            },
+                        ],
+                        description: deviceProperty.description,
+                    };
+                    if (deviceProperty.description) {
+                        signalElement.description = deviceProperty.description;
+                    }
+                    return signalElement;
+                }),
+        };
+        if (deviceInterface.description) {
+            interfaceElement.description = deviceInterface.description;
+        }
+        return interfaceElement;
     }
 }

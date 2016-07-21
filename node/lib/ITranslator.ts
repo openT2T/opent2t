@@ -20,6 +20,10 @@ export interface IDevice {
      * If the method is not available then properties and methods for all implemented
      * interfaces must be on the device object itself; in that case there must be no
      * naming conflict among the interfaces.
+     *
+     * @param {string} interfaceName  Name of the interface requested
+     * @returns {*} An object that implements the requested interface, or null if
+     *     the device does not have any implementation of the interface
      */
-    as?(interfaceName: string): any;
+    as?(interfaceName: string): Object | null;
 }

@@ -14,6 +14,9 @@ class TestTranslatorAB {
     }
 }
 
+// Export an instance of the translator from the module.
+module.exports = new TestTranslatorAB();
+
 /**
  * This translator device class implements two interfaces: "org.opent2t.test.A"
  * and "org.opent2t.test.B". But since those interfaces have some conflicting
@@ -23,7 +26,8 @@ class TestTranslatorAB {
 class TestDeviceAB extends EventEmitter {
 
     constructor(deviceProps) {
-        super(); // Important!
+        super(); // Construct EventEmitter base
+
         this.B = new InnerB(this);
         this._propA1 = 123;
         this._propA2 = "AAA";
@@ -42,7 +46,8 @@ class TestDeviceAB extends EventEmitter {
             // Interface B is delegated to an instance of the helper class.
             return this.B;
         } else {
-            throw new Error("Unsupported interface: " + interfaceName);
+            // A null return value indicates an unknown/unimplemented interface.
+            return null;
         }
     }
 
@@ -89,6 +94,8 @@ class TestDeviceAB extends EventEmitter {
 
 class InnerB extends EventEmitter {
     constructor(outer) {
+        super(); // Construct EventEmitter base
+
         // Keep a reference to the outer device object in case there is some state
         // or functionality shared by both interfaces.
         this._outer = outer;
