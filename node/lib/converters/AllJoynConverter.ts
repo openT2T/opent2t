@@ -486,8 +486,8 @@ export class AllJoynConverter {
                     arg: deviceMethod.parameters.map((deviceParameter: DeviceParameter) => {
                         let argElement: any = {
                             $: {
-                                name: deviceParameter.name,
                                 direction: (deviceParameter.isOut ? "out" : "in"),
+                                name: deviceParameter.name,
                                 type: AllJoynConverter.jsonSchemaToAllJoynType(deviceParameter.parameterType),
                             },
                         };

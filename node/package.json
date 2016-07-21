@@ -5,6 +5,8 @@
   "main": "build/lib",
   "typings": "build/lib",
   "scripts": {
+    "build": "tsc",
+    "lint": "tslint --force lib/**/*.ts",
     "test": "tsc && ava --verbose"
   },
   "repository": {
