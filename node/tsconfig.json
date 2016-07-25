@@ -1,0 +1,17 @@
+{
+    "compilerOptions": {
+        "pretty": true,
+        "outDir": "build",
+        "module": "commonjs",
+        "target": "es2015",
+        "declaration": true,
+        "noImplicitAny": true,
+        "noImplicitReturns": true,
+        "strictNullChecks": true,
+        "sourceMap": true
+    },
+    "exclude": [
+        "build",
+        "node_modules"
+    ]
+}

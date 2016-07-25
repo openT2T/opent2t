@@ -1,0 +1,37 @@
+{
+  "name": "opent2t-lib",
+  "version": "0.1.0",
+  "description": "Open Translators to Things",
+  "main": "build/lib",
+  "typings": "build/lib",
+  "scripts": {
+    "build": "tsc",
+    "lint": "tslint --force lib/**/*.ts",
+    "test": "tsc && ava --verbose"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/opent2t/opent2t.git"
+  },
+  "author": "",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/opent2t/opent2t/issues"
+  },
+  "homepage": "https://github.com/opent2t/opent2t#readme",
+  "dependencies": {
+    "jsonschema": "^1.1.0",
+    "mz": "^2.4.0",
+    "xml2js": "^0.4.17"
+  },
+  "devDependencies": {
+    "ava": "^0.15.2",
+    "tslint": "^3.14.0-dev.0",
+    "typescript": "^2.0.0"
+  },
+  "ava": {
+    "files": [
+      "build/test/*.js"
+    ]
+  }
+}
