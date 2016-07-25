@@ -29,13 +29,17 @@ export class DeviceAccessor {
 
         let value: any = deviceInterface[propertyName];
         if (typeof value === "undefined") {
+            // Allow (but do not require) the getProperty method to have an "Async" suffix
+            // and/or return a Promise instead of an immediate value.
             let methodName = "get" + DeviceAccessor.capitalize(propertyName);
             let getPropertyMethod: any = deviceInterface[methodName];
             if (typeof getPropertyMethod === "function") {
+                // Invoke using call() to set `this` to deviceInterface.
                 value = getPropertyMethod.call(deviceInterface);
             } else {
                 getPropertyMethod = deviceInterface[methodName + "Async"];
                 if (typeof getPropertyMethod === "function") {
+                    // Not using await here; if a promise is returned it will be awaited below.
                     value = getPropertyMethod.call(deviceInterface);
                 }
             }
@@ -45,6 +49,7 @@ export class DeviceAccessor {
             throw new TypeError("Property '" + propertyName + "' getter " +
                 "for interface " + interfaceName + " not implemented by device.");
         } else if (typeof value === "object" && typeof value.then === "function") {
+            // The value object looks like a Promise. Await it to get the value asynchronously.
             return await value;
         } else {
             return value;
@@ -75,6 +80,8 @@ export class DeviceAccessor {
         if (typeof currentValue !== "undefined") {
             setPropertyMethod = function (newValue: any) { this[propertyName] = newValue; };
         } else {
+            // Allow (but do not require) the setProperty method to have an "Async" suffix
+            // and/or return a Promise.
             let methodName = "set" + DeviceAccessor.capitalize(propertyName);
             setPropertyMethod = deviceInterface[methodName];
             if (typeof setPropertyMethod !== "function") {
@@ -86,8 +93,10 @@ export class DeviceAccessor {
             }
         }
 
+        // Invoke using call() to set `this` to deviceInterface.
         let result = setPropertyMethod.call(deviceInterface, value);
         if (typeof result === "object" && typeof result.then === "function") {
+            // The result object looks like a Promise. Await it to complete async the operation.
             await result;
         }
     }
@@ -121,6 +130,7 @@ export class DeviceAccessor {
             throw new TypeError("Property '" + propertyName + "' notifier " +
                 "for interface " + interfaceName + " not implemented by device.");
         } else {
+            // Invoke using call() to set `this` to deviceInterface.
             addListenerMethod.call(deviceInterface, propertyName, callback);
         }
     }
@@ -151,6 +161,7 @@ export class DeviceAccessor {
             throw new TypeError("Property '" + propertyName + "' notifier removal " +
                 "for interface " + interfaceName + " not implemented by device.");
         } else {
+            // Invoke using call() to set `this` to deviceInterface.
             removeListenerMethod.call(deviceInterface, propertyName, callback);
         }
     }
@@ -180,17 +191,25 @@ export class DeviceAccessor {
             throw new TypeError("Args argument must be an array.");
         }
 
+        // Allow (but do not require) the method to have an "Async" suffix
+        // and/or return a Promise instead of an immediate value.
         let method: any = deviceInterface[methodName];
         if (typeof method !== "function") {
-            throw new TypeError("Method '" + methodName + "' " +
-                "for interface " + interfaceName + " not implemented by device.");
-        } else {
-            let result = method.apply(deviceInterface, args);
-            if (typeof result === "object" && typeof result.then === "function") {
-                return await result;
-            } else {
-                return result;
+            method = deviceInterface[methodName + "Async"];
+            if (typeof method !== "function") {
+                throw new TypeError("Method '" + methodName + "' " +
+                    "for interface " + interfaceName + " not implemented by device.");
             }
+        }
+
+        // Invoke using apply() to set `this` to deviceInterface and pass the
+        // arguments as an array.
+        let result = method.apply(deviceInterface, args);
+        if (typeof result === "object" && typeof result.then === "function") {
+            // The result object looks like a Promise. Await it to get the result asynchronously.
+            return await result;
+        } else {
+            return result;
         }
     }
 

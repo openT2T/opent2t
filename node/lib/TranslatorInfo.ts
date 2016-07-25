@@ -9,6 +9,11 @@ export class TranslatorInfo {
     public readonly name: string;
 
     /**
+     * Friendly name of the translator.
+     */
+    public readonly displayName: string;
+
+    /**
      * List of interfaces implemented by the translator.
      */
     public readonly interfaceNames: string[];
@@ -16,7 +21,7 @@ export class TranslatorInfo {
     /**
      * Name of the onboarding module required by the translator.
      */
-    public readonly onboardingName: string;
+    public readonly onboardingModuleName: string;
 
     /**
      * Dictionary of properties passed to the onboarding module. For example, a property

@@ -57,6 +57,10 @@ export class DeviceInterface extends DeviceCharacteristic {
 export class DeviceProperty extends DeviceCharacteristic {
     /**
      * Name of the interface that declared this property.
+     *
+     * This may be useful when the property is included in a group along with properties from
+     * referenced interfaces. The name of the interface that actually declared the property
+     * (not just one that referenced it) must be used when accessing the property.
      */
     public readonly interfaceName: string;
 
@@ -94,6 +98,10 @@ export class DeviceProperty extends DeviceCharacteristic {
 export class DeviceMethod extends DeviceCharacteristic {
     /**
      * Name of the interface that declared this method.
+     *
+     * This may be useful when the method is included in a group along with methods from
+     * referenced interfaces. The name of the interface that actually declared the method
+     * (not just one that referenced it) must be used when invoking the method.
      */
     public readonly interfaceName: string;
 

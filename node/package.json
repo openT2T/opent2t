@@ -13,7 +13,7 @@
     "type": "git",
     "url": "git+https://github.com/opent2t/opent2t.git"
   },
-  "author": "opent2t@microsoft.com",
+  "author": "",
   "license": "MIT",
   "bugs": {
     "url": "https://github.com/opent2t/opent2t/issues"
