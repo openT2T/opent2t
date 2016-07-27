@@ -1,6 +1,6 @@
 
 import { DeviceInterface } from "./DeviceInterface";
-import { IDevice } from "./ITranslator";
+import { ITranslator } from "./ITranslator";
 
 import { EventEmitter } from "events";
 
@@ -8,11 +8,82 @@ import { EventEmitter } from "events";
  * Provides reflection-style access to device properties and methods via device interfaces.
  */
 export class DeviceAccessor {
+    /**
+     * Loads a DeviceInterface from a module. This is just a convenience wrapper
+     * around require(). Throws if the module could not be loaded.
+     *
+     * @param {string} interfaceModuleName  Package-qualified name (or relative path) of
+     *     the interface module. The package-qualified name can be obtained from
+     *     PackageTranslatorInfo.interfaces.
+     *
+     * @returns {Promise<DeviceInterface>} The loaded device interface.
+     */
+    public static getInterfaceAsync(interfaceModuleName: string): Promise<DeviceInterface>;
+
+    /**
+     * Loads a DeviceInterface from a module. This is just a convenience wrapper
+     * around require(). Throws if the module could not be loaded.
+     *
+     * @param {string} packageName  Name (or relative path) of the package containing
+     *     the module. The name can be obtained from PackageInfo.name.
+     * @param {string} interfaceName  Simple name of the interface module. Can be obtained
+     *     from PackageInterfaceInfo.name.
+     * @returns {Promise<DeviceInterface>} The loaded device interface.
+     */
+    public static getInterfaceAsync(
+            packageName: string, interfaceName: string): Promise<DeviceInterface>;
+
+    /**
+     * Loads a DeviceInterface from a module. (Overloaded method implementation.)
+     */
+    public static getInterfaceAsync(
+            packageNameOrInterfaceModuleName: string,
+            interfaceName?: string): Promise<DeviceInterface> {
+        let interfaceModulePath: string = (interfaceName ?
+                packageNameOrInterfaceModuleName + "/" + interfaceName :
+                packageNameOrInterfaceModuleName);
+        return new Promise<DeviceInterface>((resolve, reject) => {
+            let deviceInterface: DeviceInterface;
+            try {
+                deviceInterface = require(interfaceModulePath);
+            } catch (err) {
+                reject(err);
+                return;
+            }
+            resolve(deviceInterface);
+        });
+    }
+
+    /**
+     * Loads a translator from a module. This is just a convenience wrapper
+     * around require(). Throws if the module could not be loaded.
+     *
+     * @param {string} packageName  Name (or relative path) of the package containing
+     *     the module. The name can be obtained from PackageInfo.name.
+     * @param {string} translatorName  Name of the translator module. Can be obtained from
+     *     PackageTranslatorInfo.name.
+     * @param {*} properties  Property bag to be passed to the translator constructor.
+     * @returns {Promise<ITranslator>} The loaded translator instance.
+     */
+    public static async createTranslatorAsync(
+            packageName: string, translatorName: string, properties: any): Promise<ITranslator> {
+        return new Promise<ITranslator>((resolve, reject) => {
+            let translator: ITranslator;
+            try {
+                let translatorClass: any = require(packageName + "/" + translatorName);
+                translator = new translatorClass(properties);
+            } catch (err) {
+                reject(err);
+                return;
+            }
+            resolve(translator);
+        });
+    }
 
     /**
      * Gets the value of a property on a device, using a specified interface.
      *
-     * @param {IDevice} device  Device instance obtained from a translator
+     * @param {ITranslator} translator  Device translator instance
      * @param {(string | DeviceInterface)} interfaceName  Name of the interface used
      *     to access the device, or a DeviceInterface object
      * @param {string} propertyName  Name of the property to get
@@ -21,10 +92,10 @@ export class DeviceAccessor {
      *     by the interface
      */
     public static async getPropertyAsync(
-            device: IDevice,
+            translator: ITranslator,
             interfaceName: string | DeviceInterface,
             propertyName: string): Promise<any> {
-        let deviceInterface = DeviceAccessor.getDeviceInterface(device, interfaceName);
+        let deviceInterface = DeviceAccessor.getTranslatorInterface(translator, interfaceName);
         DeviceAccessor.validateMemberName(propertyName);
 
         let value: any = deviceInterface[propertyName];
@@ -47,7 +118,7 @@ export class DeviceAccessor {
 
         if (typeof value === "undefined") {
             throw new TypeError("Property '" + propertyName + "' getter " +
-                "for interface " + interfaceName + " not implemented by device.");
+                "for interface " + interfaceName + " not implemented by translator.");
         } else if (typeof value === "object" && typeof value.then === "function") {
             // The value object looks like a Promise. Await it to get the value asynchronously.
             return await value;
@@ -59,7 +130,7 @@ export class DeviceAccessor {
     /**
      * Sets the value of a property on a device, using a specified interface.
      *
-     * @param {IDevice} device  Device instance obtained from a translator
+     * @param {ITranslator} translator  Device translator instance
      * @param {(string | DeviceInterface)} interfaceName  Name of the interface used
      *     to access the device, or a DeviceInterface object
      * @param {string} propertyName  Name of the property to set
@@ -68,11 +139,11 @@ export class DeviceAccessor {
      *     by the interface
      */
     public static async setPropertyAsync(
-            device: IDevice,
+            translator: ITranslator,
             interfaceName: string | DeviceInterface,
             propertyName: string,
             value: any): Promise<void> {
-        let deviceInterface = DeviceAccessor.getDeviceInterface(device, interfaceName);
+        let deviceInterface = DeviceAccessor.getTranslatorInterface(translator, interfaceName);
         DeviceAccessor.validateMemberName(propertyName);
 
         let setPropertyMethod: any;
@@ -88,7 +159,7 @@ export class DeviceAccessor {
                 setPropertyMethod = deviceInterface[methodName + "Async"];
                 if (typeof setPropertyMethod !== "function") {
                     throw new TypeError("Property '" + propertyName + "' setter " +
-                        "for interface " + interfaceName + " not implemented by device.");
+                        "for interface " + interfaceName + " not implemented by translator.");
                 }
             }
         }
@@ -105,7 +176,7 @@ export class DeviceAccessor {
      * Adds a listener callback to a property that will be invoked if and when the
      * property sends notifications.
      *
-     * @param {IDevice} device  Device instance obtained from a translator
+     * @param {ITranslator} translator  Device translator instance
      * @param {(string | DeviceInterface)} interfaceName  Name of the interface used
      *     to access the device, or a DeviceInterface object
      * @param {string} propertyName  Name of the property to listen to
@@ -115,11 +186,11 @@ export class DeviceAccessor {
      *     by the interface
      */
     public static addPropertyListener(
-            device: IDevice,
+            translator: ITranslator,
             interfaceName: string | DeviceInterface,
             propertyName: string,
             callback: (value: any) => void): void {
-        let deviceInterface = DeviceAccessor.getDeviceInterface(device, interfaceName);
+        let deviceInterface = DeviceAccessor.getTranslatorInterface(translator, interfaceName);
         DeviceAccessor.validateMemberName(propertyName);
 
         // The "on" method is defined by the Node.js EventEmitter class,
@@ -128,7 +199,7 @@ export class DeviceAccessor {
 
         if (typeof addListenerMethod !== "function") {
             throw new TypeError("Property '" + propertyName + "' notifier " +
-                "for interface " + interfaceName + " not implemented by device.");
+                "for interface " + interfaceName + " not implemented by translator.");
         } else {
             // Invoke using call() to set `this` to deviceInterface.
             addListenerMethod.call(deviceInterface, propertyName, callback);
@@ -138,7 +209,7 @@ export class DeviceAccessor {
     /**
      * Removes a listener callback that was previously added to a property.
      *
-     * @param {IDevice} device  Device instance obtained from a translator
+     * @param {ITranslator} translator  Device translator instance
      * @param {(string | DeviceInterface)} interfaceName  Name of the interface used
      *     to access the device, or a DeviceInterface object
      * @param {string} propertyName  Name of the property that is being listened to
@@ -146,11 +217,11 @@ export class DeviceAccessor {
      *     added as a listener to the same property on the same device
      */
     public static removePropertyListener(
-            device: IDevice,
+            translator: ITranslator,
             interfaceName: string | DeviceInterface,
             propertyName: string,
             callback: (value: any) => void): void {
-        let deviceInterface = DeviceAccessor.getDeviceInterface(device, interfaceName);
+        let deviceInterface = DeviceAccessor.getTranslatorInterface(translator, interfaceName);
         DeviceAccessor.validateMemberName(propertyName);
 
         // The "removeListener" method is defined by the Node.js EventEmitter class,
@@ -159,7 +230,7 @@ export class DeviceAccessor {
 
         if (typeof removeListenerMethod !== "function") {
             throw new TypeError("Property '" + propertyName + "' notifier removal " +
-                "for interface " + interfaceName + " not implemented by device.");
+                "for interface " + interfaceName + " not implemented by translator.");
         } else {
             // Invoke using call() to set `this` to deviceInterface.
             removeListenerMethod.call(deviceInterface, propertyName, callback);
@@ -169,7 +240,7 @@ export class DeviceAccessor {
     /**
      * Invokes a method on a device, using a specified interface.
      *
-     * @param {IDevice} device  Device instance obtained from a translator
+     * @param {ITranslator} translator  Device translator instance
      * @param {(string | DeviceInterface)} interfaceName  Name of the interface used
      *     to access the device, or a DeviceInterface object
      * @param {string} methodName  Name of the method to invoke
@@ -181,11 +252,11 @@ export class DeviceAccessor {
      *     JSON schema for the method return value as specified by the interface
      */
     public static async invokeMethodAsync(
-            device: IDevice,
+            translator: ITranslator,
             interfaceName: string | DeviceInterface,
             methodName: string,
             args: any[]): Promise<any> {
-        let deviceInterface = DeviceAccessor.getDeviceInterface(device, interfaceName);
+        let deviceInterface = DeviceAccessor.getTranslatorInterface(translator, interfaceName);
         DeviceAccessor.validateMemberName(methodName);
         if (!Array.isArray(args)) {
             throw new TypeError("Args argument must be an array.");
@@ -198,7 +269,7 @@ export class DeviceAccessor {
             method = deviceInterface[methodName + "Async"];
             if (typeof method !== "function") {
                 throw new TypeError("Method '" + methodName + "' " +
-                    "for interface " + interfaceName + " not implemented by device.");
+                    "for interface " + interfaceName + " not implemented by translator.");
             }
         }
 
@@ -214,28 +285,28 @@ export class DeviceAccessor {
     }
 
     /**
-     * Check for an `as` method on the device, and if found use it to request an object
+     * Check for an `as` method on the translator, and if found use it to request an object
      * that implements the specified interface.
      */
-    private static getDeviceInterface(
-            device: IDevice, interfaceName: string | DeviceInterface): {[key: string]: any} {
-        if (typeof device !== "object") {
-            throw new TypeError("Device argument must be an object.");
+    private static getTranslatorInterface(
+            translator: ITranslator, interfaceName: string | DeviceInterface): {[key: string]: any} {
+        if (typeof translator !== "object") {
+            throw new TypeError("Translator argument must be an object.");
         }
 
-        if (typeof device.as !== "function") {
+        if (typeof translator.as !== "function") {
             // The device doesn't implement an "as" method, so it is assumed to implement
             // all interface methods directly.
-            return <{[key: string]: any}> device;
+            return <{[key: string]: any}> translator;
         }
 
         if (typeof interfaceName !== "string") {
             interfaceName = interfaceName.name;
         }
 
-        let deviceInterface: Object | null = device.as(interfaceName);
+        let deviceInterface: Object | null = translator.as(interfaceName);
         if (!deviceInterface) {
-            throw new TypeError("Interface not implemented by device: " + interfaceName);
+            throw new TypeError("Interface not implemented by translator: " + interfaceName);
         }
 
         return <{[key: string]: any}> deviceInterface;

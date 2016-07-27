@@ -1,17 +1,18 @@
 // Tests for the AllJoynConverter class
 // using AVA test runner from https://github.com/avajs/ava
 
+import * as path from "path";
 import test from "ava";
 import { TestContext } from "ava";
 import { Schema } from "jsonschema";
 
-import {
-    AllJoynConverter,
-    DeviceInterface,
-} from "../lib";
+import { DeviceInterface } from "../lib";
+import { AllJoynConverter } from "../lib/converters";
 
-// Move working directory from /build/test back to /test.
-process.chdir("../../test");
+// Requires modules relative to the /test directory.
+function requireTest(modulePath: string): any {
+    return require(path.join("../../test", modulePath));
+}
 
 // Test that an AllJoyn schema type code can be converted to a JSON schema and back.
 function testAllJoynTypeRoundTrip(t: TestContext, allJoynType: string, expectedSchema: Schema) {
@@ -139,16 +140,11 @@ test("AllJoyn type <-> JSON schema: a{s(i(ss))}", t => {
     });
 });
 
-test("AllJoyn schema <-> DeviceInterface: A", async t => {
-    let deviceInterfaces: DeviceInterface[] =
-            await AllJoynConverter.readDeviceInterfacesFromFileAsync("./schemas/A.xml");
+test("AllJoyn schema <-> DeviceInterface: A", t => {
+    let deviceInterface: DeviceInterface = requireTest("./@opent2t/test-a/InterfaceA");
 
-    t.true(Array.isArray(deviceInterfaces));
-    t.is(deviceInterfaces.length, 1);
-    let deviceInterface: DeviceInterface = deviceInterfaces[0];
-    t.is(deviceInterfaces.length, 1);
-    t.is("object", typeof deviceInterface, "object");
-    t.is(deviceInterface.name, "org.opent2t.test.A");
+    t.is(typeof deviceInterface, "object");
+    t.is(deviceInterface.name, "InterfaceA");
     t.truthy(deviceInterface.description);
     t.is(deviceInterface.properties.length, 3);
     t.is(deviceInterface.methods.length, 2);
@@ -157,11 +153,11 @@ test("AllJoyn schema <-> DeviceInterface: A", async t => {
     t.is(typeof deviceInterface.methods[0], "object");
     t.is(deviceInterface.methods[0].name, "methodA1");
 
-    let ajXml = await AllJoynConverter.writeDeviceInterfacesAsync(deviceInterfaces);
+    let ajXml = AllJoynConverter.writeDeviceInterfaces([deviceInterface]);
 
     // Verify the written XML by parsing it again and comparing to the
     // already-verified object model.
     let deviceInterfaces2: DeviceInterface[] =
-            await AllJoynConverter.readDeviceInterfacesAsync(ajXml);
-    t.deepEqual(deviceInterfaces2, deviceInterfaces);
+            AllJoynConverter.readDeviceInterfaces(ajXml);
+    t.deepEqual(deviceInterfaces2, [deviceInterface]);
 });

@@ -5,25 +5,12 @@
 const EventEmitter = require("events");
 
 /**
- * The translator class does not directly implement any device interfaces, but has
- * one required method for creating a device instance.
- */
-class TestTranslatorAB {
-    createDevice(deviceProps) {
-        return new TestDeviceAB(deviceProps);
-    }
-}
-
-// Export an instance of the translator from the module.
-module.exports = new TestTranslatorAB();
-
-/**
- * This translator device class implements two interfaces: "org.opent2t.test.A"
- * and "org.opent2t.test.B". But since those interfaces have some conflicting
+ * This translator class implements two interfaces: "InterfaceA"
+ * and "InterfaceB". But since those interfaces have some conflicting
  * member names, only A is implemented directly while B is delegated to
  * an inner helper class.
  */
-class TestDeviceAB extends EventEmitter {
+class TestTranslatorAB extends EventEmitter {
 
     constructor(deviceProps) {
         super(); // Construct EventEmitter base
@@ -39,10 +26,10 @@ class TestDeviceAB extends EventEmitter {
      * is assumed to implement all interfaces directly.
      */
     as(interfaceName) {
-        if (interfaceName == "org.opent2t.test.A") {
+        if (interfaceName == "InterfaceA") {
             // This device object directly implements interface A.
             return this;
-        } else if (interfaceName == "org.opent2t.test.B") {
+        } else if (interfaceName == "InterfaceB") {
             // Interface B is delegated to an instance of the helper class.
             return this.B;
         } else {
@@ -154,3 +141,6 @@ class InnerB extends EventEmitter {
         });
     }
 }
+
+// Export the translator from the module.
+module.exports = TestTranslatorAB;

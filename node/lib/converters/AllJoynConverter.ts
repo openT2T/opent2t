@@ -5,36 +5,55 @@ import { Builder, Parser } from "xml2js";
 
 import * as fs from "mz/fs";
 
+export = AllJoynConverter;
+
 /**
  * Reads and writes device interface specifications in AllJoyn XML format.
  * Reference https://wiki.allseenalliance.org/irb/extended_introspection_xml
  */
-export class AllJoynConverter {
+class AllJoynConverter {
 
     /**
-     * Reads device interfaces from an AllJoyn schema XML file.
+     * Reads device interfaces from an AllJoyn schema XML file synchronously.
+     *
+     * @param {string} filePath  Path to the source XML file
+     * @returns {DeviceInterface[]} One or more interfaces parsed from the file
+     */
+    public static readDeviceInterfacesFromFile(filePath: string): DeviceInterface[] {
+        let allJoynXml = fs.readFileSync(filePath, "utf8");
+        return AllJoynConverter.readDeviceInterfaces(allJoynXml);
+    }
+
+    /**
+     * Reads device interfaces from an AllJoyn schema XML file asynchronously.
      *
      * @param {string} filePath  Path to the source XML file
      * @returns {Promise<DeviceInterface[]>} One or more interfaces parsed from the file
      */
     public static async readDeviceInterfacesFromFileAsync(filePath: string): Promise<DeviceInterface[]> {
         let allJoynXml = await fs.readFile(filePath, "utf8");
-        return await AllJoynConverter.readDeviceInterfacesAsync(allJoynXml);
+        return AllJoynConverter.readDeviceInterfaces(allJoynXml);
     }
 
     /**
      * Reads device interfaces from an AllJoyn schema XML string.
      *
      * @param {string} allJoynXml  Schema XML contents
-     * @returns {Promise<DeviceInterface[]>} One or more interfaces parsed from the XML
+     * @returns {DeviceInterface[]} One or more interfaces parsed from the XML
      */
-    public static async readDeviceInterfacesAsync(allJoynXml: string): Promise<DeviceInterface[]> {
-        let xmlDoc = await new Promise<any>((resolve, reject) => {
-            new Parser({}).parseString(allJoynXml, (err: Error, xml: any) => {
-                err ? reject(err) : resolve(xml);
-            });
+    public static readDeviceInterfaces(allJoynXml: string): DeviceInterface[] {
+        let xmlDoc: any = null;
+
+        new Parser({
+            async: false,
+        }).parseString(allJoynXml, (err: Error, xml: any) => {
+            if (err) {
+                throw err;
+            }
+            xmlDoc = xml;
         });
-        if (!xmlDoc.node || !xmlDoc.node.interface) {
+
+        if (!xmlDoc || !xmlDoc.node || !xmlDoc.node.interface) {
             throw new Error("Missing /node/interface element(s).");
         }
 
@@ -45,14 +64,14 @@ export class AllJoynConverter {
     }
 
     /**
-     * Writes device interfaces to an AllJoyn schema XML file.
+     * Writes device interfaces to an AllJoyn schema XML file asynchronously.
      *
      * @param {DeviceInterface[]} deviceInterfaces  One or more interfaces to write
      * @param {string} filePath Path to the target XML file
      */
     public static async writeDeviceInterfacesToFileAsync(
             deviceInterfaces: DeviceInterface[], filePath: string): Promise<void> {
-        let allJoynXml: string = await AllJoynConverter.writeDeviceInterfacesAsync(deviceInterfaces);
+        let allJoynXml: string = AllJoynConverter.writeDeviceInterfaces(deviceInterfaces);
         await fs.writeFile(filePath, allJoynXml, "utf8");
     }
 
@@ -60,16 +79,17 @@ export class AllJoynConverter {
      * Writes device interfaces to an AllJoyn schema XML string.
      *
      * @param {DeviceInterface[]} deviceInterfaces  One or more interfaces to write
-     * @returns {Promise<string>} AllJoyn schema XML contents
+     * @returns {string} AllJoyn schema XML contents
      */
-    public static writeDeviceInterfacesAsync(deviceInterfaces: DeviceInterface[]): Promise<string> {
-        return new Promise<string>((resolve, reject) => {
-            let xmlBuilder: Builder = new Builder({ doctype: AllJoynConverter.doctype });
-            resolve(xmlBuilder.buildObject({
-                node: {
-                    interface: deviceInterfaces.map(AllJoynConverter.writeAllJoynInterface),
-                },
-            }));
+    public static writeDeviceInterfaces(deviceInterfaces: DeviceInterface[]): string {
+        let xmlBuilder: Builder = new Builder({
+            doctype: AllJoynConverter.doctype,
+        });
+
+        return xmlBuilder.buildObject({
+            node: {
+                interface: deviceInterfaces.map(AllJoynConverter.writeAllJoynInterface),
+            },
         });
     }
 

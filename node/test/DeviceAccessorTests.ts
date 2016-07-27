@@ -1,68 +1,97 @@
 // Tests for the DeviceAccessor class
 // using AVA test runner from https://github.com/avajs/ava
 
+import * as path from "path";
 import test from "ava";
 import { TestContext } from "ava";
 import { Schema } from "jsonschema";
 
 import {
     DeviceAccessor,
+    DeviceInterface,
     ITranslator,
 } from "../lib";
 
-// Move working directory from /build/test back to /test.
-process.chdir("../../test");
+// Adjust for a path that is relative to the /test directory.
+function testPath(modulePath: string): any {
+    return path.join("../../test", modulePath);
+}
 
-const deviceInterfaceA = "org.opent2t.test.A";
-const deviceInterfaceB = "org.opent2t.test.B";
+test("Load interface A", async t => {
+    let deviceInterfaceA: DeviceInterface = await
+            DeviceAccessor.getInterfaceAsync(testPath("./@opent2t/test-a"), "InterfaceA");
+    t.is(typeof deviceInterfaceA, "object") && t.truthy(deviceInterfaceA);
+    t.is(deviceInterfaceA.name, "InterfaceA");
+    t.true(Array.isArray(deviceInterfaceA.properties) && deviceInterfaceA.properties.length > 0);
+    t.true(Array.isArray(deviceInterfaceA.methods) && deviceInterfaceA.methods.length > 0);
+
+    // Extended testing on interface loading should be done by the converter tests.
+});
+
+test("Load interface B", async t => {
+    let deviceInterfaceB: DeviceInterface = await
+            DeviceAccessor.getInterfaceAsync(testPath("./@opent2t/test-b"), "InterfaceB");
+    t.is(typeof deviceInterfaceB, "object") && t.truthy(deviceInterfaceB);
+    t.is(deviceInterfaceB.name, "InterfaceB");
+    t.true(Array.isArray(deviceInterfaceB.properties) && deviceInterfaceB.properties.length > 0);
+    t.true(Array.isArray(deviceInterfaceB.methods) && deviceInterfaceB.methods.length > 0);
+
+    // Extended testing on interface loading should be done by the converter tests.
+});
 
 test("Device A property get", async t => {
-    let translatorA: ITranslator = require("../../test/translators/tA.js");
-    let deviceA = translatorA.createDevice({});
-    let propA1Value = await DeviceAccessor.getPropertyAsync(deviceA, deviceInterfaceA, "propA1");
+    let deviceA: ITranslator = await DeviceAccessor.createTranslatorAsync(
+            testPath("./@opent2t/test-a"), "TranslatorA", {});
+    t.is(typeof deviceA, "object") && t.truthy(deviceA);
+    let propA1Value = await DeviceAccessor.getPropertyAsync(deviceA, "InterfaceA", "propA1");
     t.is(propA1Value, 123);
 });
 
 test("Device A property set", async t => {
-    let translatorA: ITranslator = require("../../test/translators/tA.js");
-    let deviceA = translatorA.createDevice({});
-    await DeviceAccessor.setPropertyAsync(deviceA, deviceInterfaceA, "propA2", "test2");
-    let propA2Value = await DeviceAccessor.getPropertyAsync(deviceA, deviceInterfaceA, "propA2");
+    let deviceA: ITranslator = await DeviceAccessor.createTranslatorAsync(
+            testPath("./@opent2t/test-a"), "TranslatorA", {});
+    t.is(typeof deviceA, "object") && t.truthy(deviceA);
+    await DeviceAccessor.setPropertyAsync(deviceA, "InterfaceA", "propA2", "test2");
+    let propA2Value = await DeviceAccessor.getPropertyAsync(deviceA, "InterfaceA", "propA2");
     t.is(propA2Value, "test2");
 });
 
 test("Device A method call + notification", async t => {
-    let translatorA: ITranslator = require("../../test/translators/tA.js");
-    let deviceA = translatorA.createDevice({});
+    let deviceA: ITranslator = await DeviceAccessor.createTranslatorAsync(
+            testPath("./@opent2t/test-a"), "TranslatorA", {});
+    t.is(typeof deviceA, "object") && t.truthy(deviceA);
     let methodCalled: boolean = false;
-    DeviceAccessor.addPropertyListener(deviceA, deviceInterfaceA, "signalA", (message: string) => {
+    DeviceAccessor.addPropertyListener(deviceA, "InterfaceA", "signalA", (message: string) => {
         methodCalled = true;
     });
-    await DeviceAccessor.invokeMethodAsync(deviceA, deviceInterfaceA, "methodA1", []);
+    await DeviceAccessor.invokeMethodAsync(deviceA, "InterfaceA", "methodA1", []);
     t.true(methodCalled);
 });
 
 test("Device AB property get (interface A)", async t => {
-    let translatorAB: ITranslator = require("../../test/translators/tAB.js");
-    let deviceAB = translatorAB.createDevice({});
-    let propA1Value = await DeviceAccessor.getPropertyAsync(deviceAB, deviceInterfaceA, "propA1");
+    let deviceAB: ITranslator = await DeviceAccessor.createTranslatorAsync(
+            testPath("./@opent2t/test-b"), "TranslatorAB", {});
+    t.is(typeof deviceAB, "object") && t.truthy(deviceAB);
+    let propA1Value = await DeviceAccessor.getPropertyAsync(deviceAB, "InterfaceA", "propA1");
     t.is(propA1Value, 123);
 });
 
 test("Device AB property get (interface B)", async t => {
-    let translatorAB: ITranslator = require("../../test/translators/tAB.js");
-    let deviceAB = translatorAB.createDevice({});
-    let propA1Value = await DeviceAccessor.getPropertyAsync(deviceAB, deviceInterfaceB, "propA1");
+    let deviceAB: ITranslator = await DeviceAccessor.createTranslatorAsync(
+            testPath("./@opent2t/test-b"), "TranslatorAB", {});
+    t.is(typeof deviceAB, "object") && t.truthy(deviceAB);
+    let propA1Value = await DeviceAccessor.getPropertyAsync(deviceAB, "InterfaceB", "propA1");
     t.is(propA1Value, 999);
 });
 
 test("Device AB method that throws + notification", async t => {
-    let translatorAB: ITranslator = require("../../test/translators/tAB.js");
-    let deviceAB = translatorAB.createDevice({});
+    let deviceAB: ITranslator = await DeviceAccessor.createTranslatorAsync(
+            testPath("./@opent2t/test-b"), "TranslatorAB", {});
+    t.is(typeof deviceAB, "object") && t.truthy(deviceAB);
     let methodCalled: boolean = false;
-    DeviceAccessor.addPropertyListener(deviceAB, deviceInterfaceB, "signalB", (message: string) => {
+    DeviceAccessor.addPropertyListener(deviceAB, "InterfaceB", "signalB", (message: string) => {
         methodCalled = true;
     });
-    t.throws(DeviceAccessor.invokeMethodAsync(deviceAB, deviceInterfaceB, "methodB1", []));
+    t.throws(DeviceAccessor.invokeMethodAsync(deviceAB, "InterfaceB", "methodB1", []));
     t.true(methodCalled);
 });

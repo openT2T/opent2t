@@ -1,0 +1,39 @@
+{
+  "name": "@opent2t/test-b",
+  "version": "0.1.0",
+  "description": "Test package B",
+  "author": "",
+  "license": "MIT",
+  "opent2t": {
+    "interfaces": {
+      "InterfaceB": {
+        "description": "Test interface B"
+      },
+      "InterfaceC": {
+        "description": "Test interface C"
+      }
+    },
+    "translators": {
+      "TranslatorAB": {
+        "description": "Test device AB",
+        "interfaces": [
+          "@opent2t/test-a/InterfaceA",
+          "./InterfaceB"
+        ],
+        "onboarding": "@opent2t/test/FakeOnboarding",
+        "onboardingProperties": {
+        }
+      },
+      "TranslatorBC": {
+        "description": "Test device BC",
+        "interfaces": [
+          "./InterfaceB",
+          "./InterfaceC"
+        ],
+        "onboarding": "@opent2t/test/FakeOnboarding",
+        "onboardingProperties": {
+        }
+      }
+    }
+  }
+}
