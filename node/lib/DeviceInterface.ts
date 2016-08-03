@@ -18,19 +18,41 @@ export abstract class DeviceCharacteristic {
 }
 
 /**
- * Specifies an interface that can be implemented by a device.
+ * Describes an interface that can be implemented by a device translator.
  *
  * Interfaces are composable, meaning they can reference other interfaces, which reference
  * other interfaces, etc. So getting a complete view of all of an interface's properties
  * and methods requires resolving and following all references. (Duplicate interface
  * references are ignored; cycles are not allowed.) Interface resolution is provided
- * by another class (TBD).
+ * by the DeviceAccessor.getInterfaceAsync() method.
  *
  * Property and method names are allowed to conflict across different interfaces, even
- * ones that implemented by the same device. When accessing a device, an interface
- * context is always specifid.
+ * ones that implemented by the same translator. When invoking a translator, an interface
+ * context is always specified.
  */
 export class DeviceInterface extends DeviceCharacteristic {
+    /**
+     * Merges multiple interfaces into a single combined interface containing
+     * members from all specified interfaces and all interfaces they reference
+     * recursively. Members having the same name are NOT combined unless, they
+     * are also from the same interface.
+     *
+     * This may be used to generate a single interface that describes everything
+     * a device is capable of. (The generated interface will always have an
+     * empty list of references.)
+     *
+     * @param {DeviceInterface[]} interfaces  Array of interfaces to be merged
+     * @param {string} name  Name of the new merged interface
+     * @param {string} [description]  Optional description of the merged interface
+     * @returns {DeviceInterface}  Merged interface
+     */
+    public static merge(
+            interfaces: DeviceInterface[],
+            name: string,
+            description?: string): DeviceInterface {
+        throw new Error("Not implemented");
+    }
+
     /**
      * List of properties declared by this interface.
      */

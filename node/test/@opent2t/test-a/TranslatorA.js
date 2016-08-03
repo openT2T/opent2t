@@ -5,24 +5,11 @@
 const EventEmitter = require("events");
 
 /**
- * The translator class does not directly implement any device interfaces, but has
- * one required method for creating a device instance.
- */
-class TestTranslatorA {
-    createDevice(deviceProps) {
-        return new TestDeviceA(deviceProps);
-    }
-}
-
-// Export an instance of the translator from the module.
-module.exports = new TestTranslatorA();
-
-/**
- * This translator device class implements the "org.opent2t.test.A" interface.
+ * This translator class implements the "InterfaceA" interface.
  * Since the interface includes a signal (notifiable property), this class
  * extends from the node's built-in event-emitter class.
  */
-class TestDeviceA extends EventEmitter {
+class TestTranslatorA extends EventEmitter {
 
     constructor(deviceProps) {
         super(); // Construct EventEmitter base
@@ -69,3 +56,6 @@ class TestDeviceA extends EventEmitter {
         });
     }
 }
+
+// Export the translator from the module.
+module.exports = TestTranslatorA;
