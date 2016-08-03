@@ -9,7 +9,7 @@ import { EventEmitter } from "events";
  */
 export class DeviceAccessor {
     /**
-     * Loads a DeviceInterface from a module. This is just a convenience wrapper
+     * Loads an interface from a module. This is just a convenience wrapper
      * around require(). Throws if the module could not be loaded.
      *
      * @param {string} interfaceModuleName  Package-qualified name (or relative path) of
@@ -21,7 +21,7 @@ export class DeviceAccessor {
     public static getInterfaceAsync(interfaceModuleName: string): Promise<DeviceInterface>;
 
     /**
-     * Loads a DeviceInterface from a module. This is just a convenience wrapper
+     * Loads an interface from a module. This is just a convenience wrapper
      * around require(). Throws if the module could not be loaded.
      *
      * @param {string} packageName  Name (or relative path) of the package containing
@@ -34,18 +34,15 @@ export class DeviceAccessor {
             packageName: string, interfaceName: string): Promise<DeviceInterface>;
 
     /**
-     * Loads a DeviceInterface from a module. (Overloaded method implementation.)
+     * Loads an interface from a module. (Overloaded method implementation.)
      */
-    public static getInterfaceAsync(
-            packageNameOrInterfaceModuleName: string,
-            interfaceName?: string): Promise<DeviceInterface> {
-        let interfaceModulePath: string = (interfaceName ?
-                packageNameOrInterfaceModuleName + "/" + interfaceName :
-                packageNameOrInterfaceModuleName);
+    public static getInterfaceAsync(): Promise<DeviceInterface> {
+        let interfaceModuleName: string = (arguments.length > 1 ?
+                arguments[0] + "/" + arguments[1] : arguments[0]);
         return new Promise<DeviceInterface>((resolve, reject) => {
             let deviceInterface: DeviceInterface;
             try {
-                deviceInterface = require(interfaceModulePath);
+                deviceInterface = require(interfaceModuleName);
             } catch (err) {
                 reject(err);
                 return;
@@ -53,6 +50,18 @@ export class DeviceAccessor {
             resolve(deviceInterface);
         });
     }
+
+    /**
+     * Loads a translator from a module. This is just a convenience wrapper
+     * around require(). Throws if the module could not be loaded.
+     *
+     * @param {string} translatorModuleName  Package-qualified name (or relative path) of
+     *     the translator module.
+     * @param {*} properties  Property bag to be passed to the translator constructor.
+     * @returns {Promise<ITranslator>} The loaded translator instance.
+     */
+    public static async createTranslatorAsync(
+            translatorModuleName: string, properties: any): Promise<ITranslator>;
 
     /**
      * Loads a translator from a module. This is just a convenience wrapper
@@ -66,11 +75,20 @@ export class DeviceAccessor {
      * @returns {Promise<ITranslator>} The loaded translator instance.
      */
     public static async createTranslatorAsync(
-            packageName: string, translatorName: string, properties: any): Promise<ITranslator> {
+            packageName: string, translatorName: string, properties: any): Promise<ITranslator>;
+
+    /**
+     * Loads a translator from a module. (Overload method implementation.)
+     */
+    public static async createTranslatorAsync(): Promise<ITranslator> {
+        let translatorModuleName: string = (arguments.length > 2 ?
+                arguments[0] + "/" + arguments[1] : arguments[0]);
+        let properties: any = (arguments.length > 2 ? arguments[2] : arguments[1]);
+
         return new Promise<ITranslator>((resolve, reject) => {
             let translator: ITranslator;
             try {
-                let translatorClass: any = require(packageName + "/" + translatorName);
+                let translatorClass: any = require(translatorModuleName);
                 translator = new translatorClass(properties);
             } catch (err) {
                 reject(err);

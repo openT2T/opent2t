@@ -1,6 +1,10 @@
 
 /**
  * Information about an OpenT2T package, as loaded from the package.json.
+ *
+ * This class is not intended to represent every piece of metadata that might be in
+ * package.json -- just the parts that are relevant to OpenT2T package discovery and
+ * module resolution.
  */
 export class PackageInfo {
     /**
