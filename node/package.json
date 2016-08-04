@@ -1,13 +1,15 @@
 {
-  "name": "opent2t-lib",
+  "name": "opent2t",
   "version": "0.1.0",
   "description": "Open Translators to Things",
-  "main": "build/lib",
-  "typings": "build/lib",
+  "main": "index.js",
+  "typings": "index.d.ts",
   "scripts": {
     "build": "tsc",
     "lint": "tslint --force lib/**/*.ts",
-    "test": "tsc && ava --verbose"
+    "test": "tsc && ava --verbose",
+    "prepublish": "tsc && node ./tspublish.js prepublish",
+    "postpublish": "node ./tspublish.js postpublish"
   },
   "repository": {
     "type": "git",
@@ -26,6 +28,7 @@
   },
   "devDependencies": {
     "ava": "^0.15.2",
+    "shelljs": "^0.7.3",
     "tslint": "^3.14.0-dev.0",
     "typescript": "^2.0.0"
   },
