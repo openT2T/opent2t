@@ -25,13 +25,13 @@ test("Get package A info", async t => {
         t.true(Array.isArray(packageInfo.interfaces));
         t.is(packageInfo.interfaces.length, 1);
         t.is(typeof packageInfo.interfaces[0], "object");
-        t.is(packageInfo.interfaces[0].name, "InterfaceA");
+        t.is(packageInfo.interfaces[0].moduleName, "InterfaceA");
         t.is(typeof packageInfo.interfaces[0].description, "string");
 
         t.true(Array.isArray(packageInfo.translators));
         t.is(packageInfo.translators.length, 1);
         t.is(typeof packageInfo.translators[0], "object");
-        t.is(packageInfo.translators[0].name, "TranslatorA");
+        t.is(packageInfo.translators[0].moduleName, "TranslatorA");
         t.is(typeof packageInfo.translators[0].description, "string");
         t.true(Array.isArray(packageInfo.translators[0].interfaces));
         t.is(packageInfo.translators[0].interfaces.length, 1);
@@ -55,22 +55,22 @@ test("Get package B info", async t => {
         t.true(Array.isArray(packageInfo.interfaces));
         t.is(packageInfo.interfaces.length, 2);
         t.is(typeof packageInfo.interfaces[0], "object");
-        t.is(packageInfo.interfaces[0].name, "InterfaceB");
+        t.is(packageInfo.interfaces[0].moduleName, "InterfaceB");
         t.is(typeof packageInfo.interfaces[1], "object");
-        t.is(packageInfo.interfaces[1].name, "InterfaceC");
+        t.is(packageInfo.interfaces[1].moduleName, "InterfaceC");
 
         t.true(Array.isArray(packageInfo.translators));
         t.is(packageInfo.translators.length, 2);
 
         t.is(typeof packageInfo.translators[0], "object");
-        t.is(packageInfo.translators[0].name, "TranslatorAB");
+        t.is(packageInfo.translators[0].moduleName, "TranslatorAB");
         t.true(Array.isArray(packageInfo.translators[0].interfaces));
         t.is(packageInfo.translators[0].interfaces.length, 2);
         t.is(packageInfo.translators[0].interfaces[0], testPackageA + "/InterfaceA");
         t.is(packageInfo.translators[0].interfaces[1], testPackageB + "/InterfaceB");
 
         t.is(typeof packageInfo.translators[1], "object");
-        t.is(packageInfo.translators[1].name, "TranslatorBC");
+        t.is(packageInfo.translators[1].moduleName, "TranslatorBC");
         t.true(Array.isArray(packageInfo.translators[1].interfaces));
         t.is(packageInfo.translators[1].interfaces.length, 2);
         t.is(packageInfo.translators[1].interfaces[0], testPackageB + "/InterfaceB");

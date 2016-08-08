@@ -1,6 +1,11 @@
 
-import { DeviceInterface, DeviceMethod, DeviceParameter, DeviceProperty } from "../DeviceInterface";
-import { Schema } from "jsonschema";
+import {
+    DeviceInterface,
+    DeviceMethod,
+    DeviceParameter,
+    DeviceProperty,
+    JsonSchema,
+} from "../DeviceInterface";
 import { Builder, Parser } from "xml2js";
 
 import * as fs from "mz/fs";
@@ -99,10 +104,10 @@ class AllJoynConverter {
      * @param {string} ajType  AllJoyn type code
      * @param {{[name: string]: Schema}} [namedTypes]  Optional mapping from type names to schemas
      *     for named types loaded from <struct> or <dict> elements within the same XML document
-     * @returns {Schema} JSON schema
+     * @returns {JsonSchema} JSON schema
      */
     public static allJoynTypeToJsonSchema(
-            ajType: string, namedTypes?: {[name: string]: Schema}): Schema {
+            ajType: string, namedTypes?: {[name: string]: JsonSchema}): JsonSchema {
         let firstChar: string = (ajType.length < 1 ? "" : ajType[0]);
         if (!firstChar) {
             throw new Error("Missing or invalid type");
@@ -163,13 +168,13 @@ class AllJoynConverter {
      * Converts a JSON schema to an AllJoyn type code, while extracting any included
      * named types.
      *
-     * @param {Schema} schema  JSON schema to be converted
-     * @param {{[name: string]: Schema}} [namedTypes]  Optional mapping from type names to
+     * @param {JsonSchema} schema  JSON schema to be converted
+     * @param {{[name: string]: JsonSchema}} [namedTypes]  Optional mapping from type names to
      *     schemas for named types, that is filled in by named types in the converted schema.
      * @returns {string}
      */
     public static jsonSchemaToAllJoynType(
-            schema: Schema, namedTypes?: {[name: string]: Schema}): string {
+            schema: JsonSchema, namedTypes?: {[name: string]: JsonSchema}): string {
         if (!schema.type) {
             throw new Error("A type property is required in the schema.");
         }
@@ -225,7 +230,7 @@ class AllJoynConverter {
             case "array":
                 if (Array.isArray(schema.items)) {
                     // Anonymous struct: each item in the items array specifies a struct member type.
-                    let structTypes = schema.items.map((itemType: Schema) => {
+                    let structTypes = schema.items.map((itemType: JsonSchema) => {
                         return AllJoynConverter.jsonSchemaToAllJoynType(itemType, namedTypes);
                     }).join("");
                     return "(" + structTypes + ")";
@@ -306,7 +311,7 @@ class AllJoynConverter {
         let signalName: string = AllJoynConverter.getRequiredAttribute(
                 signalElement, "name", "/node/interface/signal");
 
-        let signalType: Schema | undefined;
+        let signalType: JsonSchema | undefined;
         if (Array.isArray(signalElement.arg)) {
             signalElement.arg.forEach((argElement: any) => {
                 let argType: string = AllJoynConverter.getRequiredAttribute(
@@ -415,14 +420,14 @@ class AllJoynConverter {
         return undefined;
     }
 
-    private static allJoynStructTypeToJsonSchema(ajType: string): Schema {
+    private static allJoynStructTypeToJsonSchema(ajType: string): JsonSchema {
         if (!(ajType.startsWith("(") && ajType.endsWith(")"))) {
             throw new Error("Invalid struct type: " + ajType);
         }
 
         // AllJoyn anonymous structures are represented in JSON schema syntax as fixed-length arrays.
         // Each item in the members array is a JSON schema for the struct member at that index.
-        let members: Schema[] = [];
+        let members: JsonSchema[] = [];
         let i = 1;
         while (i < ajType.length - 1) {
             let memberPart: string | null = AllJoynConverter.getAllJoynTypePart(
@@ -431,7 +436,7 @@ class AllJoynConverter {
                 break;
             }
 
-            let memberSchema: Schema = AllJoynConverter.allJoynTypeToJsonSchema(memberPart);
+            let memberSchema: JsonSchema = AllJoynConverter.allJoynTypeToJsonSchema(memberPart);
             members.push(memberSchema);
             i += memberPart.length;
         }
@@ -442,7 +447,7 @@ class AllJoynConverter {
         };
     }
 
-    private static allJoynDictionaryTypeToJsonSchema(ajType: string): Schema {
+    private static allJoynDictionaryTypeToJsonSchema(ajType: string): JsonSchema {
         if (!(ajType.startsWith("a{") && ajType.endsWith("}"))) {
             throw new Error("Invalid dictionary type: " + ajType);
         }

@@ -5,8 +5,8 @@
 const EventEmitter = require("events");
 
 /**
- * This translator class implements two interfaces: "InterfaceA"
- * and "InterfaceB". But since those interfaces have some conflicting
+ * This translator class implements two interfaces: "org.opent2t.test.A"
+ * and "org.opent2t.test.B". But since those interfaces have some conflicting
  * member names, only A is implemented directly while B is delegated to
  * an inner helper class.
  */
@@ -26,10 +26,10 @@ class TestTranslatorAB extends EventEmitter {
      * is assumed to implement all interfaces directly.
      */
     as(interfaceName) {
-        if (interfaceName == "InterfaceA") {
+        if (interfaceName == "org.opent2t.test.A") {
             // This device object directly implements interface A.
             return this;
-        } else if (interfaceName == "InterfaceB") {
+        } else if (interfaceName == "org.opent2t.test.B") {
             // Interface B is delegated to an instance of the helper class.
             return this.B;
         } else {

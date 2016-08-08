@@ -4,7 +4,6 @@
 import * as path from "path";
 import test from "ava";
 import { TestContext } from "ava";
-import { Schema } from "jsonschema";
 
 import {
     DeviceAccessor,
@@ -21,7 +20,7 @@ test("Load interface A", async t => {
     let deviceInterfaceA: DeviceInterface = await
             DeviceAccessor.getInterfaceAsync(testPath("./@opent2t/test-a"), "InterfaceA");
     t.is(typeof deviceInterfaceA, "object") && t.truthy(deviceInterfaceA);
-    t.is(deviceInterfaceA.name, "InterfaceA");
+    t.is(deviceInterfaceA.name, "org.opent2t.test.A");
     t.true(Array.isArray(deviceInterfaceA.properties) && deviceInterfaceA.properties.length > 0);
     t.true(Array.isArray(deviceInterfaceA.methods) && deviceInterfaceA.methods.length > 0);
 
@@ -32,7 +31,7 @@ test("Load interface B", async t => {
     let deviceInterfaceB: DeviceInterface = await
             DeviceAccessor.getInterfaceAsync(testPath("./@opent2t/test-b"), "InterfaceB");
     t.is(typeof deviceInterfaceB, "object") && t.truthy(deviceInterfaceB);
-    t.is(deviceInterfaceB.name, "InterfaceB");
+    t.is(deviceInterfaceB.name, "org.opent2t.test.B");
     t.true(Array.isArray(deviceInterfaceB.properties) && deviceInterfaceB.properties.length > 0);
     t.true(Array.isArray(deviceInterfaceB.methods) && deviceInterfaceB.methods.length > 0);
 
@@ -72,7 +71,8 @@ test("Device AB property get (interface A)", async t => {
     let deviceAB: ITranslator = await DeviceAccessor.createTranslatorAsync(
             testPath("./@opent2t/test-b"), "TranslatorAB", {});
     t.is(typeof deviceAB, "object") && t.truthy(deviceAB);
-    let propA1Value = await DeviceAccessor.getPropertyAsync(deviceAB, "InterfaceA", "propA1");
+    let propA1Value = await DeviceAccessor.getPropertyAsync(
+            deviceAB, "org.opent2t.test.A", "propA1");
     t.is(propA1Value, 123);
 });
 
@@ -80,7 +80,8 @@ test("Device AB property get (interface B)", async t => {
     let deviceAB: ITranslator = await DeviceAccessor.createTranslatorAsync(
             testPath("./@opent2t/test-b"), "TranslatorAB", {});
     t.is(typeof deviceAB, "object") && t.truthy(deviceAB);
-    let propA1Value = await DeviceAccessor.getPropertyAsync(deviceAB, "InterfaceB", "propA1");
+    let propA1Value = await DeviceAccessor.getPropertyAsync(
+            deviceAB, "org.opent2t.test.B", "propA1");
     t.is(propA1Value, 999);
 });
 
@@ -89,9 +90,10 @@ test("Device AB method that throws + notification", async t => {
             testPath("./@opent2t/test-b"), "TranslatorAB", {});
     t.is(typeof deviceAB, "object") && t.truthy(deviceAB);
     let methodCalled: boolean = false;
-    DeviceAccessor.addPropertyListener(deviceAB, "InterfaceB", "signalB", (message: string) => {
+    DeviceAccessor.addPropertyListener(
+            deviceAB, "org.opent2t.test.B", "signalB", (message: string) => {
         methodCalled = true;
     });
-    t.throws(DeviceAccessor.invokeMethodAsync(deviceAB, "InterfaceB", "methodB1", []));
+    t.throws(DeviceAccessor.invokeMethodAsync(deviceAB, "org.opent2t.test.B", "methodB1", []));
     t.true(methodCalled);
 });

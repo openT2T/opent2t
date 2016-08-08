@@ -5,7 +5,7 @@
 const EventEmitter = require("events");
 
 /**
- * This translator class implements the "InterfaceA" interface.
+ * This translator class implements the "org.opent2t.test.A" interface.
  * Since the interface includes a signal (notifiable property), this class
  * extends from the node's built-in event-emitter class.
  */

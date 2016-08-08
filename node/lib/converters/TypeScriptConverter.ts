@@ -1,7 +1,12 @@
 
-import { DeviceCharacteristic, DeviceInterface, DeviceMethod, DeviceParameter, DeviceProperty }
-    from "../DeviceInterface";
-import { Schema } from "jsonschema";
+import {
+    DeviceCharacteristic,
+    DeviceInterface,
+    DeviceMethod,
+    DeviceParameter,
+    DeviceProperty,
+    JsonSchema,
+} from "../DeviceInterface";
 
 import * as fs from "mz/fs";
 
@@ -71,7 +76,7 @@ export class TypeScriptConverter {
     /**
      * Converts a JSON schema to a TypeScript type.
      */
-    public static jsonSchemaToTypeScriptType(schema: Schema): string {
+    public static jsonSchemaToTypeScriptType(schema: JsonSchema): string {
         if (!schema || !schema.type) {
             return "any";
         }

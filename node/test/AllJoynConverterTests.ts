@@ -4,9 +4,8 @@
 import * as path from "path";
 import test from "ava";
 import { TestContext } from "ava";
-import { Schema } from "jsonschema";
 
-import { DeviceInterface } from "../lib";
+import { DeviceInterface, JsonSchema } from "../lib";
 import { AllJoynConverter } from "../lib/converters";
 
 // Requires modules relative to the /test directory.
@@ -15,8 +14,8 @@ function requireTest(modulePath: string): any {
 }
 
 // Test that an AllJoyn schema type code can be converted to a JSON schema and back.
-function testAllJoynTypeRoundTrip(t: TestContext, allJoynType: string, expectedSchema: Schema) {
-    let schema: Schema = AllJoynConverter.allJoynTypeToJsonSchema(allJoynType);
+function testAllJoynTypeRoundTrip(t: TestContext, allJoynType: string, expectedSchema: JsonSchema) {
+    let schema: JsonSchema = AllJoynConverter.allJoynTypeToJsonSchema(allJoynType);
     t.deepEqual(schema, expectedSchema);
     let convertedType: string = AllJoynConverter.jsonSchemaToAllJoynType(schema);
     t.is(convertedType, allJoynType);
@@ -144,7 +143,7 @@ test("AllJoyn schema <-> DeviceInterface: A", t => {
     let deviceInterface: DeviceInterface = requireTest("./@opent2t/test-a/InterfaceA");
 
     t.is(typeof deviceInterface, "object");
-    t.is(deviceInterface.name, "InterfaceA");
+    t.is(deviceInterface.name, "org.opent2t.test.A");
     t.truthy(deviceInterface.description);
     t.is(deviceInterface.properties.length, 3);
     t.is(deviceInterface.methods.length, 2);

@@ -26,12 +26,12 @@ export class DeviceAccessor {
      *
      * @param {string} packageName  Name (or relative path) of the package containing
      *     the module. The name can be obtained from PackageInfo.name.
-     * @param {string} interfaceName  Simple name of the interface module. Can be obtained
-     *     from PackageInterfaceInfo.name.
+     * @param {string} interfaceModuleName  Simple name of the interface module. Can be
+     *     obtained from PackageInterfaceInfo.name.
      * @returns {Promise<DeviceInterface>} The loaded device interface.
      */
     public static getInterfaceAsync(
-            packageName: string, interfaceName: string): Promise<DeviceInterface>;
+            packageName: string, interfaceModuleName: string): Promise<DeviceInterface>;
 
     /**
      * Loads an interface from a module. (Overloaded method implementation.)
@@ -69,13 +69,15 @@ export class DeviceAccessor {
      *
      * @param {string} packageName  Name (or relative path) of the package containing
      *     the module. The name can be obtained from PackageInfo.name.
-     * @param {string} translatorName  Name of the translator module. Can be obtained from
-     *     PackageTranslatorInfo.name.
+     * @param {string} translatorModuleName  Name of the translator module. Can be obtained
+     *     from PackageTranslatorInfo.name.
      * @param {*} properties  Property bag to be passed to the translator constructor.
      * @returns {Promise<ITranslator>} The loaded translator instance.
      */
     public static async createTranslatorAsync(
-            packageName: string, translatorName: string, properties: any): Promise<ITranslator>;
+            packageName: string,
+            translatorModuleName: string,
+            properties: any): Promise<ITranslator>;
 
     /**
      * Loads a translator from a module. (Overload method implementation.)
@@ -116,17 +118,19 @@ export class DeviceAccessor {
         let deviceInterface = DeviceAccessor.getTranslatorInterface(translator, interfaceName);
         DeviceAccessor.validateMemberName(propertyName);
 
-        let value: any = deviceInterface[propertyName];
+        let memberName = DeviceAccessor.uncapitalize(propertyName);
+        let value: any = deviceInterface[memberName];
         if (typeof value === "undefined") {
             // Allow (but do not require) the getProperty method to have an "Async" suffix
             // and/or return a Promise instead of an immediate value.
-            let methodName = "get" + DeviceAccessor.capitalize(propertyName);
-            let getPropertyMethod: any = deviceInterface[methodName];
+            memberName = "get" + DeviceAccessor.capitalize(propertyName);
+            let getPropertyMethod: any = deviceInterface[memberName];
             if (typeof getPropertyMethod === "function") {
                 // Invoke using call() to set `this` to deviceInterface.
                 value = getPropertyMethod.call(deviceInterface);
             } else {
-                getPropertyMethod = deviceInterface[methodName + "Async"];
+                memberName = memberName + "Async";
+                getPropertyMethod = deviceInterface[memberName];
                 if (typeof getPropertyMethod === "function") {
                     // Not using await here; if a promise is returned it will be awaited below.
                     value = getPropertyMethod.call(deviceInterface);
@@ -165,16 +169,18 @@ export class DeviceAccessor {
         DeviceAccessor.validateMemberName(propertyName);
 
         let setPropertyMethod: any;
-        let currentValue = deviceInterface[propertyName];
+        let memberName = DeviceAccessor.uncapitalize(propertyName);
+        let currentValue = deviceInterface[memberName];
         if (typeof currentValue !== "undefined") {
-            setPropertyMethod = function (newValue: any) { this[propertyName] = newValue; };
+            setPropertyMethod = function (newValue: any) { this[memberName] = newValue; };
         } else {
             // Allow (but do not require) the setProperty method to have an "Async" suffix
             // and/or return a Promise.
-            let methodName = "set" + DeviceAccessor.capitalize(propertyName);
-            setPropertyMethod = deviceInterface[methodName];
+            memberName = "set" + DeviceAccessor.capitalize(propertyName);
+            setPropertyMethod = deviceInterface[memberName];
             if (typeof setPropertyMethod !== "function") {
-                setPropertyMethod = deviceInterface[methodName + "Async"];
+                memberName = memberName + "Async";
+                setPropertyMethod = deviceInterface[memberName];
                 if (typeof setPropertyMethod !== "function") {
                     throw new TypeError("Property '" + propertyName + "' setter " +
                         "for interface " + interfaceName + " not implemented by translator.");
@@ -341,7 +347,15 @@ export class DeviceAccessor {
 
     private static capitalize(propertyName: string) {
         if (propertyName.length > 1) {
-            return propertyName.substr(0, 1).toUpperCase() + propertyName.substr(1);
+            return propertyName[0].toUpperCase() + propertyName.substr(1);
+        }
+
+        return propertyName;
+    }
+
+    private static uncapitalize(propertyName: string) {
+        if (propertyName.length > 1) {
+            return propertyName[0].toLowerCase() + propertyName.substr(1);
         }
 
         return propertyName;

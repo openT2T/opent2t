@@ -22,7 +22,6 @@
   },
   "homepage": "https://github.com/opent2t/opent2t#readme",
   "dependencies": {
-    "jsonschema": "^1.1.0",
     "mz": "^2.4.0",
     "xml2js": "^0.4.17"
   },
