@@ -1,13 +1,20 @@
 
-import { Schema } from "jsonschema";
-
 /**
  * Base class for device interfaces, properties, methods, and parameters, which
  * all have a name and optional description.
  */
 export abstract class DeviceCharacteristic {
     /**
-     * Name of the characteristic. For interfaces this is a fully-qualified name.
+     * Name of the characteristic.
+     *
+     * The name property of an interface may be different from the interface's module name.
+     * An interface name should be globally unique, to avoid potential conflicts with other
+     * similar interfaces. Uniqueness is typically achieved using a reverse-domain-name style
+     * hierarchical naming pattern.
+     *
+     * Property and method names are allowed to conflict across different interfaces, even
+     * ones that implemented by the same translator. When invoking a translator, an interface
+     * context is always specified.
      */
     public readonly name: string;
 
@@ -25,10 +32,6 @@ export abstract class DeviceCharacteristic {
  * and methods requires resolving and following all references. (Duplicate interface
  * references are ignored; cycles are not allowed.) Interface resolution is provided
  * by the DeviceAccessor.getInterfaceAsync() method.
- *
- * Property and method names are allowed to conflict across different interfaces, even
- * ones that implemented by the same translator. When invoking a translator, an interface
- * context is always specified.
  */
 export class DeviceInterface extends DeviceCharacteristic {
     /**
@@ -111,7 +114,7 @@ export class DeviceProperty extends DeviceCharacteristic {
     /**
      * JSON schema that specifies the type of the property.
      */
-    public readonly propertyType: Schema;
+    public readonly propertyType: JsonSchema;
 }
 
 /**
@@ -143,10 +146,49 @@ export class DeviceParameter extends DeviceCharacteristic {
     /**
      * JSON schema that specifies the type of the parameter.
      */
-    public readonly parameterType: Schema;
+    public readonly parameterType: JsonSchema;
 
     /**
      * True if this is an out parameter (return value), false if in.
      */
     public readonly isOut: boolean;
+}
+
+/**
+ * Describes the schema of JSON data.
+ * Reference http://json-schema.org/ and
+ * https://raw.githubusercontent.com/tdegrunt/jsonschema/master/lib/index.d.ts
+ */
+export interface JsonSchema {
+    id?: string;
+    $schema?: string;
+    title?: string;
+    description?: string;
+    multipleOf?: number;
+    maximum?: number;
+    exclusiveMaximum?: boolean;
+    minimum?: number;
+    exclusiveMinimum?: boolean;
+    maxLength?: number;
+    minLength?: number;
+    pattern?: string;
+    additionalItems?: boolean | JsonSchema;
+    items?: JsonSchema | JsonSchema[];
+    maxItems?: number;
+    minItems?: number;
+    uniqueItems?: boolean;
+    maxProperties?: number;
+    minProperties?: number;
+    required?: string[];
+    additionalProperties?: boolean | JsonSchema;
+    definitions?: { [name: string]: JsonSchema };
+    properties?: { [name: string]: JsonSchema };
+    patternProperties?: { [name: string]: JsonSchema };
+    dependencies?: { [name: string]: JsonSchema | string[] };
+    "enum"?: any[];
+    type?: string | string[];
+    allOf?: JsonSchema[];
+    anyOf?: JsonSchema[];
+    oneOf?: JsonSchema[];
+    not?: JsonSchema;
 }

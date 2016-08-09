@@ -2,4 +2,4 @@
 var AllJoynConverter = require("../../../build/lib/converters/AllJoynConverter");
 
 module.exports = AllJoynConverter.readDeviceInterfacesFromFile(
-    require("path").join(__dirname, "A.xml"))[0];
+    require("path").join(__dirname, "org.opent2t.test.A.xml"))[0];

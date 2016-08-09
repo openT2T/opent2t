@@ -35,7 +35,7 @@ export class PackageInfo {
             Object.keys(interfacesJson).forEach((moduleName: string) => {
                 interfaces.push({
                     description: interfacesJson[moduleName].description,
-                    name: moduleName,
+                    moduleName: moduleName,
                 });
             });
         }
@@ -73,7 +73,7 @@ export class PackageInfo {
                 translators.push({
                     description: translatorsJson[moduleName].description,
                     interfaces: interfaceReferences,
-                    name: moduleName,
+                    moduleName: moduleName,
                     onboarding: onboardingReference,
                     onboardingProperties: onboardingProperties,
                 });
@@ -133,7 +133,7 @@ export class PackageInterfaceInfo {
      * Name of the interface module within the package. This is not a fully-qualified
      * name; a package name prefix is normally required to resolve the module.
      */
-    public readonly name: string;
+    public readonly moduleName: string;
 
     /**
      * Optional description of the interface module.
@@ -150,7 +150,7 @@ export class PackageTranslatorInfo {
      * Name of the translator module within the package. This is not a fully-qualified
      * name; a package name prefix is normally required to resolve the module.
      */
-    public readonly name: string;
+    public readonly moduleName: string;
 
     /**
      * Optional description of the translator module.

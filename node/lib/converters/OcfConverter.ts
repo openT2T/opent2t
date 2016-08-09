@@ -1,6 +1,11 @@
 
-import { DeviceInterface, DeviceMethod, DeviceParameter, DeviceProperty } from "../DeviceInterface";
-import { Schema } from "jsonschema";
+import {
+    DeviceInterface,
+    DeviceMethod,    // tslint:disable-line:no-unused-variable
+    DeviceParameter, // tslint:disable-line:no-unused-variable
+    DeviceProperty,  // tslint:disable-line:no-unused-variable
+    JsonSchema,      // tslint:disable-line:no-unused-variable
+} from "../DeviceInterface";
 
 import * as fs from "mz/fs";
 

@@ -5,8 +5,8 @@
 const EventEmitter = require("events");
 
 /**
- * This translator class implements two interfaces: "InterfaceB"
- * and "InterfaceC". Since those interfaces do not have any conflicting
+ * This translator class implements two interfaces: "org.opent2t.test.B"
+ * and "org.opent2t.test.C". Since those interfaces do not have any conflicting
  * member names, they are both implemented directly.
  */
 class TestTranslatorBC extends EventEmitter {
