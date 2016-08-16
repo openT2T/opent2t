@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<manifest>
+  <schemas>
+    <schema id="org.opent2t.test.schemas.a" />
+    <schema id="org.opent2t.test.schemas.b" />
+  </schemas>
+  <onboarding id="org.opent2t.test.onboarding">
+    <arg name="prop1" value="value1" />
+    <arg name="prop2" value="value2" />
+  </onboarding>
+</manifest>

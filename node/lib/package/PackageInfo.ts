@@ -1,10 +1,15 @@
 
 /**
- * Information about an OpenT2T package, as loaded from the package.json.
+ * Information about an OpenT2T package, as loaded from a source directory with
+ * a translator manifest or from a built package.json.
  *
  * This class is not intended to represent every piece of metadata that might be in
  * package.json -- just the parts that are relevant to OpenT2T package discovery and
  * module resolution.
+ *
+ * By specifying module paths of schemas and translators in the package, this class
+ * abstracts away the directory structure from the rest of the library and consumers
+ * of it.
  */
 export class PackageInfo {
     /**
@@ -130,8 +135,8 @@ export class PackageInfo {
  */
 export class PackageSchemaInfo {
     /**
-     * Name of the schema module within the package. This is not a fully-qualified
-     * name; a package name prefix is normally required to resolve the module.
+     * Relative path and name of the schema module within the package. This is not a fully-
+     * qualified name; a package name prefix is normally required to resolve the module.
      */
     public readonly moduleName: string;
 
@@ -147,8 +152,9 @@ export class PackageSchemaInfo {
  */
 export class PackageTranslatorInfo {
     /**
-     * Name of the translator module within the package. This is not a fully-qualified
-     * name; a package name prefix is normally required to resolve the module.
+     * Relative path and name of the translator module within the package. This is not a
+     * fully-qualified name; a package name prefix is normally required to resolve the
+     * module.
      */
     public readonly moduleName: string;
 

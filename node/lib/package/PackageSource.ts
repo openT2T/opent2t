@@ -1,6 +1,8 @@
 
 import { PackageInfo } from "./PackageInfo";
 
+import * as path from "path";
+
 /**
  * Base class for a local or remote source of OpenT2T packages. Also serves
  * as a factory for various package source subclasses. The factory pattern is
@@ -9,15 +11,21 @@ import { PackageInfo } from "./PackageInfo";
  */
 export abstract class PackageSource {
     /**
-     * Creates a new LocalPackageSource with a specified cache directory.
+     * Creates a new local package source with a specified source directory.
      *
-     * @param {string} cacheDirectory  Path to the directory where packages are cached.
+     * @param {string} sourceDirectory  Path to a package source directory, or
+     *     a node_modules directory where packages are installed.
      */
-    public static createLocalPackageSource(cacheDirectory: string): PackageSource {
+    public static createLocalPackageSource(sourceDirectory: string): PackageSource {
         // Use delayed require to avoid recursive module dependency.
-        let LocalPackageSource = require("./LocalPackageSource").LocalPackageSource;
+        let packageSourceType: any;
+        if (path.basename(sourceDirectory) === "node_modules") {
+            packageSourceType = require("./InstalledPackageSource").InstalledPackageSource;
+        } else {
+            packageSourceType = require("./LocalPackageSource").LocalPackageSource;
+        }
 
-        return new LocalPackageSource(cacheDirectory);
+        return new packageSourceType(sourceDirectory);
     }
 
     /**
