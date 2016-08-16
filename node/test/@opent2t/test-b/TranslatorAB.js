@@ -5,8 +5,8 @@
 const EventEmitter = require("events");
 
 /**
- * This translator class implements two interfaces: "org.opent2t.test.A"
- * and "org.opent2t.test.B". But since those interfaces have some conflicting
+ * This translator class implements two schemas: "org.opent2t.test.A"
+ * and "org.opent2t.test.B". But since those schemas have some conflicting
  * member names, only A is implemented directly while B is delegated to
  * an inner helper class.
  */
@@ -21,19 +21,19 @@ class TestTranslatorAB extends EventEmitter {
     }
 
     /**
-     * When present, the `as` method is called to request an object from the device
-     * that implements the requested interface. If no `as` method is present, the device
-     * is assumed to implement all interfaces directly.
+     * When present, the `resolveSchema` method is called to request an object from the
+     * translator that implements the requested schema. If no `resolveSchema` method is
+     * present, the translator is assumed to implement all schemas directly.
      */
-    as(interfaceName) {
-        if (interfaceName == "org.opent2t.test.A") {
-            // This device object directly implements interface A.
+    resolveSchema(schemaName) {
+        if (schemaName === "org.opent2t.test.A") {
+            // This translator object directly implements schema A.
             return this;
-        } else if (interfaceName == "org.opent2t.test.B") {
-            // Interface B is delegated to an instance of the helper class.
+        } else if (schemaName === "org.opent2t.test.B") {
+            // Schema B is delegated to an instance of the helper class.
             return this.B;
         } else {
-            // A null return value indicates an unknown/unimplemented interface.
+            // A null return value indicates an unknown/unimplemented schema.
             return null;
         }
     }
@@ -84,7 +84,7 @@ class InnerB extends EventEmitter {
         super(); // Construct EventEmitter base
 
         // Keep a reference to the outer device object in case there is some state
-        // or functionality shared by both interfaces.
+        // or functionality shared by both schemas.
         this._outer = outer;
 
         this._propA1 = 999;
@@ -95,8 +95,8 @@ class InnerB extends EventEmitter {
      * Getter for readonly property A1.
      */
     getPropA1() {
-        // Note this property's name conflicts with the declaration in interface A.
-        // When the same property is called via interface B, it can return a different value.
+        // Note this property's name conflicts with the declaration in schema A.
+        // When the same property is called via schema B, it can return a different value.
         return this._propA1;
     }
 
@@ -125,8 +125,8 @@ class InnerB extends EventEmitter {
      * Synchronous method that emits an event and then throws an error.
      */
     methodB1() {
-        // Note since signalB is declared in interface B, the corresponding events must
-        // be emitted from the event-emitter subclass that also implements interface B.
+        // Note since signalB is declared in schema B, the corresponding events must
+        // be emitted from the event-emitter subclass that also implements schema B.
         this.emit("signalB", "methodB1 called");
         throw new Error("Intentional error!");
     }

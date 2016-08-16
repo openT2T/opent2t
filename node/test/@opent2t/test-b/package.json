@@ -5,30 +5,30 @@
   "author": "",
   "license": "MIT",
   "opent2t": {
-    "interfaces": {
-      "InterfaceB": {
-        "description": "Test interface B"
+    "schemas": {
+      "SchemaB": {
+        "description": "Test schema B"
       },
-      "InterfaceC": {
-        "description": "Test interface C"
+      "SchemaC": {
+        "description": "Test schema C"
       }
     },
     "translators": {
       "TranslatorAB": {
-        "description": "Test device AB",
-        "interfaces": [
-          "@opent2t/test-a/InterfaceA",
-          "./InterfaceB"
+        "description": "Test thing AB",
+        "schemas": [
+          "@opent2t/test-a/SchemaA",
+          "./SchemaB"
         ],
         "onboarding": "@opent2t/test/FakeOnboarding",
         "onboardingProperties": {
         }
       },
       "TranslatorBC": {
-        "description": "Test device BC",
-        "interfaces": [
-          "./InterfaceB",
-          "./InterfaceC"
+        "description": "Test thing BC",
+        "schemas": [
+          "./SchemaB",
+          "./SchemaC"
         ],
         "onboarding": "@opent2t/test/FakeOnboarding",
         "onboardingProperties": {

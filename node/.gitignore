@@ -1,8 +1,2 @@
 build/
 node_modules/
-*.js
-*.js.map
-*.d.ts
-!typings/**/*.d.ts
-!test/*.js
-!tspublish.js

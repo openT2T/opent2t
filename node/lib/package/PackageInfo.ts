@@ -29,12 +29,12 @@ export class PackageInfo {
             return null;
         }
 
-        let interfaces: PackageInterfaceInfo[] = [];
-        let interfacesJson: {[moduleName: string]: any} = packageJson.opent2t.interfaces;
-        if (typeof interfacesJson === "object") {
-            Object.keys(interfacesJson).forEach((moduleName: string) => {
-                interfaces.push({
-                    description: interfacesJson[moduleName].description,
+        let schemas: PackageSchemaInfo[] = [];
+        let schemasJson: {[moduleName: string]: any} = packageJson.opent2t.schemas;
+        if (typeof schemasJson === "object") {
+            Object.keys(schemasJson).forEach((moduleName: string) => {
+                schemas.push({
+                    description: schemasJson[moduleName].description,
                     moduleName: moduleName,
                 });
             });
@@ -45,13 +45,13 @@ export class PackageInfo {
         if (typeof translatorsJson === "object") {
             Object.keys(translatorsJson).forEach((moduleName: string) => {
 
-                let interfaceReferences: string[] = translatorsJson[moduleName].interfaces;
-                if (!Array.isArray(interfaceReferences)) {
-                    throw new Error("Missing or invalid translator interface references: " +
-                            JSON.stringify(interfaceReferences));
+                let schemaReferences: string[] = translatorsJson[moduleName].schemas;
+                if (!Array.isArray(schemaReferences)) {
+                    throw new Error("Missing or invalid translator schema references: " +
+                            JSON.stringify(schemaReferences));
                 }
 
-                interfaceReferences = interfaceReferences.map(<(value: string) => string>
+                schemaReferences = schemaReferences.map(<(value: string) => string>
                     PackageInfo.resolveModuleName.bind(null, packageJson.name));
 
                 let onboardingReference: string = translatorsJson[moduleName].onboarding;
@@ -72,7 +72,7 @@ export class PackageInfo {
 
                 translators.push({
                     description: translatorsJson[moduleName].description,
-                    interfaces: interfaceReferences,
+                    schemas: schemaReferences,
                     moduleName: moduleName,
                     onboarding: onboardingReference,
                     onboardingProperties: onboardingProperties,
@@ -82,7 +82,7 @@ export class PackageInfo {
 
         return {
             description: packageJson.description,
-            interfaces: interfaces,
+            schemas: schemas,
             name: packageJson.name,
             translators: translators,
             version: packageJson.version,
@@ -114,9 +114,9 @@ export class PackageInfo {
     public readonly description?: string;
 
     /**
-     * Array of information about OpenT2T interface modules in the package.
+     * Array of information about OpenT2T schema modules in the package.
      */
-    public readonly interfaces: PackageInterfaceInfo[];
+    public readonly schemas: PackageSchemaInfo[];
 
     /**
      * Array of information about OpenT2T translator modules in the package.
@@ -125,18 +125,18 @@ export class PackageInfo {
 }
 
 /**
- * Information about an OpenT2T interface module in a package, as loaded from
- * the opent2t/interfaces node of package.json.
+ * Information about an OpenT2T schema module in a package, as loaded from
+ * the opent2t/schemas node of package.json.
  */
-export class PackageInterfaceInfo {
+export class PackageSchemaInfo {
     /**
-     * Name of the interface module within the package. This is not a fully-qualified
+     * Name of the schema module within the package. This is not a fully-qualified
      * name; a package name prefix is normally required to resolve the module.
      */
     public readonly moduleName: string;
 
     /**
-     * Optional description of the interface module.
+     * Optional description of the schema module.
      */
     public readonly description?: string;
 }
@@ -158,10 +158,10 @@ export class PackageTranslatorInfo {
     public readonly description?: string;
 
     /**
-     * List of references to interfaces implemented by the translator.
-     * These are package-qualified interface module names.
+     * List of references to schemas implemented by the translator.
+     * These are package-qualified schema module names.
      */
-    public readonly interfaces: string[];
+    public readonly schemas: string[];
 
     /**
      * Reference to the onboarding module required by the translator.
@@ -171,7 +171,7 @@ export class PackageTranslatorInfo {
 
     /**
      * Dictionary of properties passed to the onboarding module. For example, a property
-     * may specify a filter for the kind of device that is to be onboarded.
+     * may specify a filter for the kind of thing that is to be onboarded.
      */
     public readonly onboardingProperties: { [propertyName: string]: string };
 }

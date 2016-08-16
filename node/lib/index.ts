@@ -1,10 +1,10 @@
 
-export { DeviceAccessor } from "./DeviceAccessor";
+export { ThingAccessor } from "./ThingAccessor";
 export {
-    DeviceCharacteristic,
-    DeviceInterface,
-    DeviceMethod,
-    DeviceProperty,
+    ThingCharacteristic,
+    ThingSchema,
+    ThingMethod,
+    ThingProperty,
     JsonSchema,
-} from "./DeviceInterface";
-export { ITranslator } from "./ITranslator";
+} from "./ThingSchema";
+export { IThingTranslator } from "./IThingTranslator";
