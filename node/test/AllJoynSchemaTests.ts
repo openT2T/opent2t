@@ -5,8 +5,8 @@ import * as path from "path";
 import test from "ava";
 import { TestContext } from "ava";
 
-import { DeviceInterface, JsonSchema } from "../lib";
-import { AllJoynConverter } from "../lib/converters";
+import { ThingSchema, JsonSchema } from "../lib";
+import { AllJoynSchemaReader, AllJoynSchemaWriter } from "../lib/schema";
 
 // Requires modules relative to the /test directory.
 function requireTest(modulePath: string): any {
@@ -15,9 +15,9 @@ function requireTest(modulePath: string): any {
 
 // Test that an AllJoyn schema type code can be converted to a JSON schema and back.
 function testAllJoynTypeRoundTrip(t: TestContext, allJoynType: string, expectedSchema: JsonSchema) {
-    let schema: JsonSchema = AllJoynConverter.allJoynTypeToJsonSchema(allJoynType);
+    let schema: JsonSchema = AllJoynSchemaReader.allJoynTypeToJsonSchema(allJoynType);
     t.deepEqual(schema, expectedSchema);
-    let convertedType: string = AllJoynConverter.jsonSchemaToAllJoynType(schema);
+    let convertedType: string = AllJoynSchemaWriter.jsonSchemaToAllJoynType(schema);
     t.is(convertedType, allJoynType);
 }
 
@@ -139,24 +139,24 @@ test("AllJoyn type <-> JSON schema: a{s(i(ss))}", t => {
     });
 });
 
-test("AllJoyn schema <-> DeviceInterface: A", t => {
-    let deviceInterface: DeviceInterface = requireTest("./@opent2t/test-a/InterfaceA");
+test("AllJoyn schema <-> ThingSchema: A", t => {
+    let thingSchema: ThingSchema = requireTest("./@opent2t/test-a/SchemaA");
 
-    t.is(typeof deviceInterface, "object");
-    t.is(deviceInterface.name, "org.opent2t.test.A");
-    t.truthy(deviceInterface.description);
-    t.is(deviceInterface.properties.length, 3);
-    t.is(deviceInterface.methods.length, 2);
-    t.is(typeof deviceInterface.properties[0], "object");
-    t.is(deviceInterface.properties[0].name, "propA1");
-    t.is(typeof deviceInterface.methods[0], "object");
-    t.is(deviceInterface.methods[0].name, "methodA1");
+    t.is(typeof thingSchema, "object");
+    t.is(thingSchema.name, "org.opent2t.test.A");
+    t.truthy(thingSchema.description);
+    t.is(thingSchema.properties.length, 3);
+    t.is(thingSchema.methods.length, 2);
+    t.is(typeof thingSchema.properties[0], "object");
+    t.is(thingSchema.properties[0].name, "propA1");
+    t.is(typeof thingSchema.methods[0], "object");
+    t.is(thingSchema.methods[0].name, "methodA1");
 
-    let ajXml = AllJoynConverter.writeDeviceInterfaces([deviceInterface]);
+    let ajXml = AllJoynSchemaWriter.writeThingSchemas([thingSchema]);
 
     // Verify the written XML by parsing it again and comparing to the
     // already-verified object model.
-    let deviceInterfaces2: DeviceInterface[] =
-            AllJoynConverter.readDeviceInterfaces(ajXml);
-    t.deepEqual(deviceInterfaces2, [deviceInterface]);
+    let thingSchemas2: ThingSchema[] =
+            AllJoynSchemaReader.readThingSchemas(ajXml);
+    t.deepEqual(thingSchemas2, [thingSchema]);
 });

@@ -1,5 +1,5 @@
 // In a non-test interface module, this path would be: "opent2t/converters/AllJoynConverter"
-var AllJoynConverter = require("../../../build/lib/converters/AllJoynConverter");
+var AllJoynSchemaReader = require("../../../build/lib/schema/AllJoynSchemaReader");
 
-module.exports = AllJoynConverter.readDeviceInterfacesFromFile(
+module.exports = AllJoynSchemaReader.readThingSchemasFromFile(
     require("path").join(__dirname, "org.opent2t.test.B.xml"))[0];

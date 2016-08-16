@@ -6,7 +6,7 @@ import test from "ava";
 import {
     PackageSource,
     PackageInfo,
-} from "../lib/packaging";
+} from "../lib/package";
 
 let testPackageSource = PackageSource.createLocalPackageSource("../../test");
 const testPackageA = "@opent2t/test-a";
@@ -22,20 +22,20 @@ test("Get package A info", async t => {
         t.true(packageInfo.version.indexOf(".") > 0);
         t.is(typeof packageInfo.description, "string");
 
-        t.true(Array.isArray(packageInfo.interfaces));
-        t.is(packageInfo.interfaces.length, 1);
-        t.is(typeof packageInfo.interfaces[0], "object");
-        t.is(packageInfo.interfaces[0].moduleName, "InterfaceA");
-        t.is(typeof packageInfo.interfaces[0].description, "string");
+        t.true(Array.isArray(packageInfo.schemas));
+        t.is(packageInfo.schemas.length, 1);
+        t.is(typeof packageInfo.schemas[0], "object");
+        t.is(packageInfo.schemas[0].moduleName, "SchemaA");
+        t.is(typeof packageInfo.schemas[0].description, "string");
 
         t.true(Array.isArray(packageInfo.translators));
         t.is(packageInfo.translators.length, 1);
         t.is(typeof packageInfo.translators[0], "object");
         t.is(packageInfo.translators[0].moduleName, "TranslatorA");
         t.is(typeof packageInfo.translators[0].description, "string");
-        t.true(Array.isArray(packageInfo.translators[0].interfaces));
-        t.is(packageInfo.translators[0].interfaces.length, 1);
-        t.is(packageInfo.translators[0].interfaces[0], testPackageA + "/InterfaceA");
+        t.true(Array.isArray(packageInfo.translators[0].schemas));
+        t.is(packageInfo.translators[0].schemas.length, 1);
+        t.is(packageInfo.translators[0].schemas[0], testPackageA + "/SchemaA");
 
         t.is(typeof packageInfo.translators[0].onboarding, "string");
         t.is(typeof packageInfo.translators[0].onboardingProperties, "object");
@@ -52,29 +52,29 @@ test("Get package B info", async t => {
         t.true(packageInfo.version.indexOf(".") > 0);
         t.is(typeof packageInfo.description, "string");
 
-        t.true(Array.isArray(packageInfo.interfaces));
-        t.is(packageInfo.interfaces.length, 2);
-        t.is(typeof packageInfo.interfaces[0], "object");
-        t.is(packageInfo.interfaces[0].moduleName, "InterfaceB");
-        t.is(typeof packageInfo.interfaces[1], "object");
-        t.is(packageInfo.interfaces[1].moduleName, "InterfaceC");
+        t.true(Array.isArray(packageInfo.schemas));
+        t.is(packageInfo.schemas.length, 2);
+        t.is(typeof packageInfo.schemas[0], "object");
+        t.is(packageInfo.schemas[0].moduleName, "SchemaB");
+        t.is(typeof packageInfo.schemas[1], "object");
+        t.is(packageInfo.schemas[1].moduleName, "SchemaC");
 
         t.true(Array.isArray(packageInfo.translators));
         t.is(packageInfo.translators.length, 2);
 
         t.is(typeof packageInfo.translators[0], "object");
         t.is(packageInfo.translators[0].moduleName, "TranslatorAB");
-        t.true(Array.isArray(packageInfo.translators[0].interfaces));
-        t.is(packageInfo.translators[0].interfaces.length, 2);
-        t.is(packageInfo.translators[0].interfaces[0], testPackageA + "/InterfaceA");
-        t.is(packageInfo.translators[0].interfaces[1], testPackageB + "/InterfaceB");
+        t.true(Array.isArray(packageInfo.translators[0].schemas));
+        t.is(packageInfo.translators[0].schemas.length, 2);
+        t.is(packageInfo.translators[0].schemas[0], testPackageA + "/SchemaA");
+        t.is(packageInfo.translators[0].schemas[1], testPackageB + "/SchemaB");
 
         t.is(typeof packageInfo.translators[1], "object");
         t.is(packageInfo.translators[1].moduleName, "TranslatorBC");
-        t.true(Array.isArray(packageInfo.translators[1].interfaces));
-        t.is(packageInfo.translators[1].interfaces.length, 2);
-        t.is(packageInfo.translators[1].interfaces[0], testPackageB + "/InterfaceB");
-        t.is(packageInfo.translators[1].interfaces[1], testPackageB + "/InterfaceC");
+        t.true(Array.isArray(packageInfo.translators[1].schemas));
+        t.is(packageInfo.translators[1].schemas.length, 2);
+        t.is(packageInfo.translators[1].schemas[0], testPackageB + "/SchemaB");
+        t.is(packageInfo.translators[1].schemas[1], testPackageB + "/SchemaC");
     }
 });
 

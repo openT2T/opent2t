@@ -5,16 +5,16 @@
   "author": "",
   "license": "MIT",
   "opent2t": {
-    "interfaces": {
-      "InterfaceA": {
-        "description": "Test interface A"
+    "schemas": {
+      "SchemaA": {
+        "description": "Test schema A"
       }
     },
     "translators": {
       "TranslatorA": {
         "description": "Test translator A",
-        "interfaces": [
-          "./InterfaceA"
+        "schemas": [
+          "./SchemaA"
         ],
         "onboarding": "@opent2t/test/FakeOnboarding",
         "onboardingProperties": {
