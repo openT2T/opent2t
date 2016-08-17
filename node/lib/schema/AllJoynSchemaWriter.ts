@@ -6,7 +6,7 @@ import {
     ThingProperty,
     JsonSchema,
 } from "../ThingSchema";
-import { Builder, Parser } from "xml2js";
+import { Builder } from "xml2js";
 
 import * as fs from "mz/fs";
 

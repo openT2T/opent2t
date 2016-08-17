@@ -5,11 +5,11 @@
 const EventEmitter = require("events");
 
 /**
- * This translator class implements the "org.opent2t.test.A" schema.
+ * This translator class implements the "org.opent2t.test.schemas.a" schema.
  * Since the schema includes a signal (notifiable property), this class
  * extends from the node's built-in event-emitter class.
  */
-class TestTranslatorA extends EventEmitter {
+class TestTranslatorOne extends EventEmitter {
 
     constructor(deviceProps) {
         super(); // Construct EventEmitter base
@@ -58,4 +58,4 @@ class TestTranslatorA extends EventEmitter {
 }
 
 // Export the translator from the module.
-module.exports = TestTranslatorA;
+module.exports = TestTranslatorOne;

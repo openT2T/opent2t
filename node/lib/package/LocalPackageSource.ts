@@ -1,19 +1,68 @@
 
-import { PackageInfo } from "./PackageInfo";
+import { PackageInfo, PackageSchemaInfo, PackageTranslatorInfo } from "./PackageInfo";
 import { PackageSource } from "./PackageSource";
+
+import { Parser } from "xml2js";
 
 import * as fs from "mz/fs";
 import * as path from "path";
 
 /**
- * Reads translator metadata and loads translators from a local directory
- * where translator NPM packages have been installed.
+ * Reads package metadata and loads package information from a local source directory.
+ *
+ * This is complicated because the directory structure doesn't correspond to the
+ * packaging structure: There is one package per translator, yet there is one top-level
+ * directory per schema.
+ *
+ * This class supports a git-cloned source directory containing schemas and
+ * translators in the same layout as the git repo. While the directory layout is similar
+ * to an installed package source, there are important differences:
+ *  - The npm-installed source has directories separated (and in some cases duplicated)
+ *    across packages, while the git source has all directories merged into a single
+ *    tree.
+ *  - The npm-installed source has a package.json at the root of each package, that
+ *    contains pre-built metadata that makes it unnecessary to scan all subdirectories,
+ *    while the git source has a package.json for each translator directory, which is
+ *    not actually at the root of the package.
+ *
+ * Either way, the PackageSource and PackageInfo classes abstract away the directory
+ * structure from the rest of the library and consumers of it.
  */
 export class LocalPackageSource extends PackageSource {
     /**
+     * Merges OpenT2T package information into a package.json object.
+     */
+    public static mergePackageInfo(packageJson: any, packageInfo: PackageInfo): void {
+        packageJson.opent2t = {};
+
+        if (Array.isArray(packageInfo.schemas)) {
+            packageJson.opent2t.schemas = {};
+            packageInfo.schemas.forEach((schemaInfo: PackageSchemaInfo) => {
+                packageJson.opent2t.schemas[schemaInfo.moduleName] = {
+                    description: schemaInfo.description,
+                };
+            });
+        }
+
+        if (Array.isArray(packageInfo.translators)) {
+            packageJson.opent2t.translators = {};
+            packageInfo.translators.forEach((translatorInfo: PackageTranslatorInfo) => {
+                packageJson.opent2t.translators[translatorInfo.moduleName] = {
+                    description: translatorInfo.description,
+                    onboarding: translatorInfo.onboarding,
+                    onboardingProperties: translatorInfo.onboardingProperties,
+                    schemas: translatorInfo.schemas,
+                };
+            });
+        }
+
+        // TODO: Merge onboarding info.
+    }
+
+    /**
      * Gets all subdirectories (not files) under a directory.
      */
-    private static async getSubdirectoriesAsync(directoryPath: string): Promise<string[]> {
+    protected static async getSubdirectoriesAsync(directoryPath: string): Promise<string[]> {
         let directoryNames: string[] = [];
         let childNames: string[] = await fs.readdir(directoryPath);
 
@@ -27,20 +76,32 @@ export class LocalPackageSource extends PackageSource {
     }
 
     /**
+     * Derive the name of an OpenT2T package.
+     *
+     * @param {string} name  Reverse-dns style name of an OpenT2T component
+     * @param {string} type  Package type such as "translator" or "onboarding"
+     * @returns {string} Derived NPM package name.
+     */
+    private static derivePackageName(name: string, type: string): string {
+        return "opent2t-" + type + "-" + name.replace(/\./g, "-");
+    }
+
+    /**
      * Path to the directory where packages are cached. In order to enable requiring
      * modules in these packages without using relative paths, the path should be a
      * node_modules directory that is included in the search path.
      */
-    public readonly cacheDirectory: string;
+    public readonly sourceDirectory: string;
 
     /**
-     * Creates a new LocalPackageSource with a specified cache directory.
+     * Creates a new LocalPackageSource with a specified cache or source directory.
      *
-     * @param {string} cacheDirectory  Path to the directory where packages are cached.
+     * @param {string} cacheDirectory  Path to the directory where packages are
+     *     npm-installed, or path to the root of a cloned OpenT2T source repo.
      */
-    constructor(cacheDirectory: string) {
+    constructor(sourceDirectory: string) {
         super();
-        this.cacheDirectory = cacheDirectory;
+        this.sourceDirectory = sourceDirectory;
     }
 
     /**
@@ -52,26 +113,30 @@ export class LocalPackageSource extends PackageSource {
      */
     public async getAllPackageInfoAsync(): Promise<PackageInfo[]> {
         let packageInfos: PackageInfo[] = [];
+        let packageInfo: PackageInfo | null;
+
         let directoryNames: string[] =
-                await LocalPackageSource.getSubdirectoriesAsync(this.cacheDirectory);
+                await LocalPackageSource.getSubdirectoriesAsync(this.sourceDirectory);
 
         for (let i = 0; i < directoryNames.length; i++) {
-            let packageName: string = directoryNames[i];
-            if (packageName.startsWith("@")) {
-                let subdirectoryNames: string[] = await LocalPackageSource.getSubdirectoriesAsync(
-                        path.join(this.cacheDirectory, packageName));
+            // Top level directories could be schema or onboarding directories.
+            packageInfo = await this.loadSchemaPackageInfoAsync(directoryNames[i]);
+            if (!packageInfo) {
+                packageInfo = await this.loadOnboardingPackageInfoAsync(directoryNames[i]);
+            }
 
-                for (let j = 0; j < subdirectoryNames.length; j++) {
-                    let subPackageName = packageName + "/" + subdirectoryNames[j];
-                    let packageInfo: PackageInfo | null =
-                            await this.getPackageInfoAsync(subPackageName);
-                    if (packageInfo) {
-                        packageInfos.push(packageInfo);
-                    }
-                }
-            } else {
-                let packageInfo: PackageInfo | null =
-                        await this.getPackageInfoAsync(packageName);
+            if (packageInfo) {
+                packageInfos.push(packageInfo);
+            }
+
+            let subdirectoryNames: string[] =
+                    await LocalPackageSource.getSubdirectoriesAsync(
+                        path.join(this.sourceDirectory, directoryNames[i]));
+
+            for (let j = 0; j < subdirectoryNames.length; j++) {
+                // Second level directories could be translator directories.
+                packageInfo = await this.loadTranslatorPackageInfoAsync(
+                        directoryNames[i], subdirectoryNames[j]);
                 if (packageInfo) {
                     packageInfos.push(packageInfo);
                 }
@@ -90,38 +155,35 @@ export class LocalPackageSource extends PackageSource {
      * package, or null if the requested package is not found at the source
      */
     public async getPackageInfoAsync(name: string): Promise<PackageInfo | null> {
-        let packageJsonPath: string = path.join(this.cacheDirectory, name, "package.json");
-
-        let packageJsonContents: string;
-        try {
-            packageJsonContents = await fs.readFile(packageJsonPath, "utf8");
-        } catch (error) {
-            console.warn("Failed to read package.json for package '" + name + "': " + error.message);
+        if (name.startsWith("opent2t-schema-")) {
+            let schemaName: string =
+                    name.substr("opent2t-schema-".length).replace(/-/g, ".");
+            return await this.loadSchemaPackageInfoAsync(schemaName);
+        } else if (name.startsWith("opent2t-translator-")) {
+            let translatorName: string =
+                    name.substr("opent2t-translator-".length).replace(/-/g, ".");
+            // Search for a directory with a subdirectory matching the translator name.
+            // Unfortunately the parent directory (schema name) a translator is under might
+            // not be known ahead of time, so this search is required.
+            let directoryNames: string[] = await LocalPackageSource.getSubdirectoriesAsync(
+                    this.sourceDirectory);
+            for (let i = 0; i < directoryNames.length; i++) {
+                let subdirectoryNames: string[] = await LocalPackageSource.getSubdirectoriesAsync(
+                        path.join(this.sourceDirectory, directoryNames[i]));
+                if (subdirectoryNames.indexOf(translatorName) >= 0) {
+                    return await this.loadTranslatorPackageInfoAsync(
+                            directoryNames[i], translatorName);
+                }
+            }
+            return null;
+        } else if (name.startsWith("opent2t-onboarding-")) {
+            let onboardingName: string =
+                    name.substr("opent2t-onboarding-".length).replace(/-/g, ".");
+            return await this.loadOnboardingPackageInfoAsync(onboardingName);
+        } else {
+            // TODO: Scan all package.json files to find one with matching package name??
             return null;
         }
-
-        let packageJson: any;
-        try {
-            packageJson = JSON.parse(packageJsonContents);
-        } catch (error) {
-            console.warn("Failed to parse package.json for package '" + name + "': " + error.message);
-            return null;
-        }
-
-        if (!packageJson.opent2t) {
-            // Not an OpenT2T translator package. Just return null with no warning.
-            return null;
-        }
-
-        let packageInfo: PackageInfo | null;
-        try {
-            packageInfo = PackageInfo.parse(packageJson);
-        } catch (error) {
-            console.warn("Failed to parse package.json package '" + name + "': " + error.message);
-            return null;
-        }
-
-        return packageInfo;
     }
 
     /**
@@ -132,5 +194,189 @@ export class LocalPackageSource extends PackageSource {
      */
     public copyPackageAsync(name: string, targetDirectory: string): Promise<void> {
         throw new Error("Not implemented.");
+    }
+
+    /**
+     * Load schema package information from a schema directory.
+     */
+    private async loadSchemaPackageInfoAsync(schemaName: string): Promise<PackageInfo | null> {
+        // By convention there is a .js file with the same name as the schema directory,
+        // so the module path is just the name/name. Note schemas are not required to
+        // have a package.json that enables them to be packaged separately; they may only
+        // be packaged along with translators. In that case NO schema package info will
+        // be loaded here.
+        let schemaModulePath = schemaName + "/" + schemaName;
+        let schemaPackageJsonPath = schemaName + "/package.json";
+
+        if (!(await fs.exists(path.join(this.sourceDirectory, schemaModulePath + ".js"))) ||
+                !(await fs.exists(path.join(this.sourceDirectory, schemaPackageJsonPath)))) {
+            // The requested schema package was not found.
+            return null;
+        }
+
+        let packageJson: any = await this.loadJsonAsync(schemaPackageJsonPath);
+        return {
+            description: packageJson.description,
+            name: packageJson.name,
+            schemas: [{
+                moduleName: schemaModulePath,
+            }],
+            translators: [],
+            version: packageJson.version,
+        };
+    }
+
+    /**
+     * Load translator package information from package.json and manifest.xml files
+     * in a translator directory.
+     */
+    private async loadTranslatorPackageInfoAsync(
+            schemaName: string, translatorName: string): Promise<PackageInfo | null> {
+        // By convention there is a thingTranslator.js file under a "js" directory,
+        // under a directory with the translator name, under the schema directory.
+        // And there should be manifest.xml and package.json files alongside it.
+        let translatorModulePath = schemaName + "/" + translatorName + "/js/thingTranslator";
+        let translatorManifestPath = schemaName + "/" + translatorName + "/js/manifest.xml";
+        let translatorPackageJsonPath = schemaName + "/" + translatorName + "/js/package.json";
+
+        if (!(await fs.exists(path.join(this.sourceDirectory, translatorModulePath + ".js"))) ||
+                !(await fs.exists(path.join(this.sourceDirectory, translatorManifestPath))) ||
+                !(await fs.exists(path.join(this.sourceDirectory, translatorPackageJsonPath)))) {
+            // The requested translator package was not found.
+            return null;
+        }
+
+        let packageJson: any = await this.loadJsonAsync(translatorPackageJsonPath);
+        let manifestXml: any = await this.loadXmlAsync(translatorManifestPath);
+        let manifestXmlRoot: any = manifestXml && manifestXml.manifest;
+
+        if (!packageJson || !manifestXmlRoot) {
+            return null;
+        }
+
+        // Parse schema info from the manifest.
+        let schemaInfos: any[] = [];
+        let schemaModulePaths: string[] = [];
+        if (Array.isArray(manifestXmlRoot.schemas) &&
+                manifestXmlRoot.schemas.length == 1 &&
+                Array.isArray(manifestXmlRoot.schemas[0].schema)) {
+            let schemaElements = manifestXmlRoot.schemas[0].schema;
+
+            let mainSchemas = schemaElements.filter(
+                    (schemaElement: any) => schemaElement.$ && schemaElement.$.main === "true");
+            if (mainSchemas.length > 0) {
+                // If one or more of the schemas are marked as "main", ignore the others.
+                // Otherwise use all of them.
+                schemaElements = mainSchemas;
+            }
+
+            schemaElements.forEach((schemaElement: any) => {
+                let schemaId: string = schemaElement.$.id;
+                if (schemaId) {
+                    // By convention the schema module file and its parent directory
+                    // both match the name of the schema.
+                    let schemaModulePath: string = schemaId + "/" + schemaId;
+                    schemaModulePaths.push(packageJson.name + "/" + schemaModulePath);
+                    schemaInfos.push({
+                        moduleName: schemaModulePath
+                    });
+                }
+            });
+        }
+
+        // Parse onboarding info from the manifest.
+        let onboardingModulePath: string = "";
+        let onboardingProperties: any = {};
+        if (Array.isArray(manifestXmlRoot.onboarding) &&
+                manifestXmlRoot.onboarding.length == 1) {
+            let onboardingElement = manifestXmlRoot.onboarding[0];
+            let onboardingId = onboardingElement.$.id;
+            if (onboardingId) {
+                // By convention the onboarding module is in a package whose name is derived
+                // from the onboarding id.
+                let onboardingPackageName: string =
+                        LocalPackageSource.derivePackageName(onboardingId, "onboarding");
+                onboardingModulePath = onboardingPackageName + "/" + onboardingId;
+                if (Array.isArray(onboardingElement.arg)) {
+                    onboardingElement.arg.forEach((argElement: any) => {
+                        let argName: string = argElement.$.name;
+                        let argValue: string = argElement.$.value;
+                        if (argName) {
+                            onboardingProperties[argName] = (argValue || "");
+                        }
+                    });
+                }
+            }
+        }
+
+        return {
+            description: packageJson.description,
+            name: packageJson.name,
+            schemas: schemaInfos,
+            translators: [{
+                moduleName: translatorModulePath,
+                schemas: schemaModulePaths,
+                onboarding: onboardingModulePath,
+                onboardingProperties: onboardingProperties,
+            }],
+            version: packageJson.version,
+        };
+    }
+
+    private async loadOnboardingPackageInfoAsync(
+            onboardingName: string): Promise<PackageInfo | null> {
+        // TODO: Load onboarding package info from XML + package.json
+        return Promise.resolve(null);
+    }
+
+    /**
+     * Reads a file and returns the contents parsed as JSON, or null if reading or parsing failed.
+     */
+    private async loadJsonAsync(jsonFilePath: string): Promise<any> {
+        let jsonString: string;
+        try {
+            jsonString = await fs.readFile(
+                    path.join(this.sourceDirectory, jsonFilePath), "utf8");
+        } catch (error) {
+            console.warn("Failed to read file '" + jsonFilePath + "': " + error.message);
+            return null;
+        }
+
+        let json: any;
+        try {
+            json = JSON.parse(jsonString);
+        } catch (error) {
+            console.warn("Failed to parse file '" + jsonFilePath + "': " + error.message);
+            return null;
+        }
+
+        return json;
+    }
+
+    /**
+     * Reads a file and returns the contents parsed as XML, or null if reading or parsing failed.
+     */
+    private async loadXmlAsync(xmlFilePath: string): Promise<any> {
+        let xmlString: string;
+        try {
+            xmlString = await fs.readFile(
+                    path.join(this.sourceDirectory, xmlFilePath), "utf8");
+        } catch (error) {
+            console.warn("Failed to read file '" + xmlFilePath + "': " + error.message);
+            return null;
+        }
+
+        return await new Promise<any>((resolve, reject) => {
+            new Parser({
+                async: true,
+            }).parseString(xmlString, (error: Error, xml: any) => {
+                if (error) {
+                    console.warn("Failed to parse file '" + xmlFilePath + "': " + error.message);
+                    resolve(null);
+                } else {
+                    resolve(xml);
+                }
+            });
+        });
     }
 }

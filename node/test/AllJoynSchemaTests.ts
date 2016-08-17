@@ -10,7 +10,7 @@ import { AllJoynSchemaReader, AllJoynSchemaWriter } from "../lib/schema";
 
 // Requires modules relative to the /test directory.
 function requireTest(modulePath: string): any {
-    return require(path.join("../../test", modulePath));
+    return require(path.join(__dirname, "../../test", modulePath));
 }
 
 // Test that an AllJoyn schema type code can be converted to a JSON schema and back.
@@ -140,10 +140,11 @@ test("AllJoyn type <-> JSON schema: a{s(i(ss))}", t => {
 });
 
 test("AllJoyn schema <-> ThingSchema: A", t => {
-    let thingSchema: ThingSchema = requireTest("./@opent2t/test-a/SchemaA");
+    let thingSchema: ThingSchema = requireTest(
+            "./org.opent2t.test.schemas.a/org.opent2t.test.schemas.a");
 
     t.is(typeof thingSchema, "object");
-    t.is(thingSchema.name, "org.opent2t.test.A");
+    t.is(thingSchema.name, "org.opent2t.test.schemas.a");
     t.truthy(thingSchema.description);
     t.is(thingSchema.properties.length, 3);
     t.is(thingSchema.methods.length, 2);

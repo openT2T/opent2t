@@ -1,6 +1,7 @@
 // Tests for the *PackageCache classes
 // using AVA test runner from https://github.com/avajs/ava
 
+import * as path from "path";
 import test from "ava";
 
 import {
@@ -8,16 +9,20 @@ import {
     PackageInfo,
 } from "../lib/package";
 
-let testPackageSource = PackageSource.createLocalPackageSource("../../test");
-const testPackageA = "@opent2t/test-a";
-const testPackageB = "@opent2t/test-b";
+let testPackageSource = PackageSource.createLocalPackageSource(path.join(__dirname, "../../test"));
+const testPackageOne = "opent2t-translator-org-opent2t-test-translators-one";
+const testPackageTwo = "opent2t-translator-org-opent2t-test-translators-two";
+const testSchemaA = "org.opent2t.test.schemas.a";
+const testSchemaB = "org.opent2t.test.schemas.b";
+const testTranslatorOne = "org.opent2t.test.translators.one";
+const testTranslatorTwo = "org.opent2t.test.translators.two";
 
 test("Get package A info", async t => {
-    let packageInfo: PackageInfo | null = await testPackageSource.getPackageInfoAsync(testPackageA);
+    let packageInfo: PackageInfo | null = await testPackageSource.getPackageInfoAsync(testPackageOne);
     t.is(typeof packageInfo, "object");
-    if (packageInfo)
-    {
-        t.is(packageInfo.name, testPackageA);
+    t.not(packageInfo, null);
+    if (packageInfo) {
+        t.is(packageInfo.name, testPackageOne);
         t.is(typeof packageInfo.version, "string");
         t.true(packageInfo.version.indexOf(".") > 0);
         t.is(typeof packageInfo.description, "string");
@@ -25,17 +30,17 @@ test("Get package A info", async t => {
         t.true(Array.isArray(packageInfo.schemas));
         t.is(packageInfo.schemas.length, 1);
         t.is(typeof packageInfo.schemas[0], "object");
-        t.is(packageInfo.schemas[0].moduleName, "SchemaA");
-        t.is(typeof packageInfo.schemas[0].description, "string");
+        t.is(packageInfo.schemas[0].moduleName, testSchemaA + "/" + testSchemaA);
 
         t.true(Array.isArray(packageInfo.translators));
         t.is(packageInfo.translators.length, 1);
         t.is(typeof packageInfo.translators[0], "object");
-        t.is(packageInfo.translators[0].moduleName, "TranslatorA");
-        t.is(typeof packageInfo.translators[0].description, "string");
+        t.is(packageInfo.translators[0].moduleName,
+                testSchemaA + "/" + testTranslatorOne + "/js/thingTranslator");
         t.true(Array.isArray(packageInfo.translators[0].schemas));
         t.is(packageInfo.translators[0].schemas.length, 1);
-        t.is(packageInfo.translators[0].schemas[0], testPackageA + "/SchemaA");
+        t.is(packageInfo.translators[0].schemas[0],
+            testPackageOne + "/" + testSchemaA + "/" + testSchemaA);
 
         t.is(typeof packageInfo.translators[0].onboarding, "string");
         t.is(typeof packageInfo.translators[0].onboardingProperties, "object");
@@ -43,11 +48,12 @@ test("Get package A info", async t => {
 });
 
 test("Get package B info", async t => {
-    let packageInfo: PackageInfo | null = await testPackageSource.getPackageInfoAsync(testPackageB);
+    let packageInfo: PackageInfo | null = await testPackageSource.getPackageInfoAsync(testPackageTwo);
     t.is(typeof packageInfo, "object");
+    t.not(packageInfo, null);
     if (packageInfo)
     {
-        t.is(packageInfo.name, "@opent2t/test-b");
+        t.is(packageInfo.name, testPackageTwo);
         t.is(typeof packageInfo.version, "string");
         t.true(packageInfo.version.indexOf(".") > 0);
         t.is(typeof packageInfo.description, "string");
@@ -55,26 +61,22 @@ test("Get package B info", async t => {
         t.true(Array.isArray(packageInfo.schemas));
         t.is(packageInfo.schemas.length, 2);
         t.is(typeof packageInfo.schemas[0], "object");
-        t.is(packageInfo.schemas[0].moduleName, "SchemaB");
+        t.is(packageInfo.schemas[0].moduleName, testSchemaA + "/" + testSchemaA);
         t.is(typeof packageInfo.schemas[1], "object");
-        t.is(packageInfo.schemas[1].moduleName, "SchemaC");
+        t.is(packageInfo.schemas[1].moduleName, testSchemaB + "/" + testSchemaB);
 
         t.true(Array.isArray(packageInfo.translators));
-        t.is(packageInfo.translators.length, 2);
+        t.is(packageInfo.translators.length, 1);
 
         t.is(typeof packageInfo.translators[0], "object");
-        t.is(packageInfo.translators[0].moduleName, "TranslatorAB");
+        t.is(packageInfo.translators[0].moduleName,
+                testSchemaB + "/" + testTranslatorTwo + "/js/thingTranslator");
         t.true(Array.isArray(packageInfo.translators[0].schemas));
         t.is(packageInfo.translators[0].schemas.length, 2);
-        t.is(packageInfo.translators[0].schemas[0], testPackageA + "/SchemaA");
-        t.is(packageInfo.translators[0].schemas[1], testPackageB + "/SchemaB");
-
-        t.is(typeof packageInfo.translators[1], "object");
-        t.is(packageInfo.translators[1].moduleName, "TranslatorBC");
-        t.true(Array.isArray(packageInfo.translators[1].schemas));
-        t.is(packageInfo.translators[1].schemas.length, 2);
-        t.is(packageInfo.translators[1].schemas[0], testPackageB + "/SchemaB");
-        t.is(packageInfo.translators[1].schemas[1], testPackageB + "/SchemaC");
+        t.is(packageInfo.translators[0].schemas[0],
+                testPackageTwo + "/" + testSchemaA + "/" + testSchemaA);
+        t.is(packageInfo.translators[0].schemas[1],
+                testPackageTwo + "/" + testSchemaB + "/" + testSchemaB);
     }
 });
 
@@ -85,8 +87,8 @@ test("Get all packages info", async t => {
         t.true(Array.isArray(allPackageInfo));
         t.is(allPackageInfo.length, 2);
         t.is(typeof allPackageInfo[0], "object");
-        t.is(allPackageInfo[0].name, testPackageA);
+        t.is(allPackageInfo[0].name, testPackageOne);
         t.is(typeof allPackageInfo[0], "object");
-        t.is(allPackageInfo[1].name, testPackageB);
+        t.is(allPackageInfo[1].name, testPackageTwo);
     }
 });

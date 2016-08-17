@@ -5,12 +5,12 @@
 const EventEmitter = require("events");
 
 /**
- * This translator class implements two schemas: "org.opent2t.test.A"
- * and "org.opent2t.test.B". But since those schemas have some conflicting
+ * This translator class implements two schemas: "org.opent2t.test.schemas.a"
+ * and "org.opent2t.test.schemas.b". But since those schemas have some conflicting
  * member names, only A is implemented directly while B is delegated to
  * an inner helper class.
  */
-class TestTranslatorAB extends EventEmitter {
+class TestTranslatorTwo extends EventEmitter {
 
     constructor(deviceProps) {
         super(); // Construct EventEmitter base
@@ -26,10 +26,10 @@ class TestTranslatorAB extends EventEmitter {
      * present, the translator is assumed to implement all schemas directly.
      */
     resolveSchema(schemaName) {
-        if (schemaName === "org.opent2t.test.A") {
+        if (schemaName === "org.opent2t.test.schemas.a") {
             // This translator object directly implements schema A.
             return this;
-        } else if (schemaName === "org.opent2t.test.B") {
+        } else if (schemaName === "org.opent2t.test.schemas.b") {
             // Schema B is delegated to an instance of the helper class.
             return this.B;
         } else {
@@ -143,4 +143,4 @@ class InnerB extends EventEmitter {
 }
 
 // Export the translator from the module.
-module.exports = TestTranslatorAB;
+module.exports = TestTranslatorTwo;
