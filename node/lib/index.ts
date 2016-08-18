@@ -1,8 +1,7 @@
 
 export { IThingTranslator } from "./IThingTranslator";
-
+export { JsonSchema } from "./JsonSchema";
 export {
-    JsonSchema,
     ThingCharacteristic,
     ThingSchema,
     ThingMethod,

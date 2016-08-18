@@ -1,4 +1,4 @@
-// Tests for the AllJoynConverter class
+// Tests for the AllJoynSchemaReader and AllJoynSchemaWriter classes
 // using AVA test runner from https://github.com/avajs/ava
 
 import * as path from "path";
