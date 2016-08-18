@@ -1,6 +1,6 @@
 
+import { JsonSchema } from "../JsonSchema";
 import {
-    JsonSchema,
     ThingCharacteristic,
     ThingMethod,
     ThingParameter,
@@ -10,12 +10,14 @@ import {
 
 import * as fs from "mz/fs";
 
+export = TypeScriptSchemaWriter;
+
 /**
  * Writes thing schema specifications in TypeScript type-definition format.
  * A translator written in TypeScript can use the generated interface definitions
  * to have the compiler enforce proper implementation of thing schemas.
  */
-export class TypeScriptSchemaWriter {
+class TypeScriptSchemaWriter {
 
     /**
      * Writes thing schemas to a TypeScript type-definition file.

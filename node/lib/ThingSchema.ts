@@ -1,4 +1,6 @@
 
+import { JsonSchema } from "./JsonSchema";
+
 /**
  * Base class for thing schemas, properties, methods, and parameters, which
  * all have a name and optional description.
@@ -152,43 +154,4 @@ export class ThingParameter extends ThingCharacteristic {
      * True if this is an out parameter (return value), false if in.
      */
     public readonly isOut: boolean;
-}
-
-/**
- * Describes the schema of JSON data.
- * Reference http://json-schema.org/ and
- * https://raw.githubusercontent.com/tdegrunt/jsonschema/master/lib/index.d.ts
- */
-export interface JsonSchema {
-    id?: string;
-    $schema?: string;
-    title?: string;
-    description?: string;
-    multipleOf?: number;
-    maximum?: number;
-    exclusiveMaximum?: boolean;
-    minimum?: number;
-    exclusiveMinimum?: boolean;
-    maxLength?: number;
-    minLength?: number;
-    pattern?: string;
-    additionalItems?: boolean | JsonSchema;
-    items?: JsonSchema | JsonSchema[];
-    maxItems?: number;
-    minItems?: number;
-    uniqueItems?: boolean;
-    maxProperties?: number;
-    minProperties?: number;
-    required?: string[];
-    additionalProperties?: boolean | JsonSchema;
-    definitions?: { [name: string]: JsonSchema };
-    properties?: { [name: string]: JsonSchema };
-    patternProperties?: { [name: string]: JsonSchema };
-    dependencies?: { [name: string]: JsonSchema | string[] };
-    "enum"?: any[];
-    type?: string | string[];
-    allOf?: JsonSchema[];
-    anyOf?: JsonSchema[];
-    oneOf?: JsonSchema[];
-    not?: JsonSchema;
 }

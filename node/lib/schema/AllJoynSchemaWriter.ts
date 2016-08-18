@@ -1,6 +1,6 @@
 
+import { JsonSchema } from "../JsonSchema";
 import {
-    JsonSchema,
     ThingMethod,
     ThingParameter,
     ThingProperty,

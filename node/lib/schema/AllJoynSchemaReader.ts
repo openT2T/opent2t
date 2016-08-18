@@ -1,6 +1,6 @@
 
+import { JsonSchema } from "../JsonSchema";
 import {
-    JsonSchema,
     ThingMethod,
     ThingParameter,
     ThingProperty,
@@ -20,6 +20,7 @@ class AllJoynSchemaReader {
 
     /**
      * Reads thing schemas from an AllJoyn schema XML file synchronously.
+     * (A synchronous implementation allows a schema to be loaded via a require().)
      *
      * @param {string} filePath  Path to the source XML file
      * @returns {ThingSchema[]} One or more schemas parsed from the file
