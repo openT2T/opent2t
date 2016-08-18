@@ -1,10 +1,10 @@
 
 import {
-    ThingSchema,
+    JsonSchema,
     ThingMethod,
     ThingParameter,
     ThingProperty,
-    JsonSchema,
+    ThingSchema,
 } from "../ThingSchema";
 import { Builder } from "xml2js";
 

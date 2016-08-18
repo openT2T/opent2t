@@ -1,7 +1,6 @@
 
-import { PackageInfo } from "./PackageInfo";
-import { PackageSource } from "./PackageSource";
 import { LocalPackageSource } from "./LocalPackageSource";
+import { PackageInfo } from "./PackageInfo";
 
 import * as fs from "mz/fs";
 import * as path from "path";

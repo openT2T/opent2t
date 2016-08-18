@@ -77,18 +77,18 @@ export class PackageInfo {
 
                 translators.push({
                     description: translatorsJson[moduleName].description,
-                    schemas: schemaReferences,
                     moduleName: moduleName,
                     onboarding: onboardingReference,
                     onboardingProperties: onboardingProperties,
+                    schemas: schemaReferences,
                 });
             });
         }
 
         return {
             description: packageJson.description,
-            schemas: schemas,
             name: packageJson.name,
+            schemas: schemas,
             translators: translators,
             version: packageJson.version,
         };

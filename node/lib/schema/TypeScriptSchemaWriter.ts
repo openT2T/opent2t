@@ -1,11 +1,11 @@
 
 import {
+    JsonSchema,
     ThingCharacteristic,
     ThingMethod,
     ThingParameter,
     ThingProperty,
     ThingSchema,
-    JsonSchema,
 } from "../ThingSchema";
 
 import * as fs from "mz/fs";

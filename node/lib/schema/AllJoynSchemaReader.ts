@@ -1,10 +1,10 @@
 
 import {
-    ThingSchema,
+    JsonSchema,
     ThingMethod,
     ThingParameter,
     ThingProperty,
-    JsonSchema,
+    ThingSchema,
 } from "../ThingSchema";
 import { Parser } from "xml2js";
 
@@ -185,9 +185,9 @@ class AllJoynSchemaReader {
             canRead: (propertyAccess === "read" || propertyAccess === "readwrite"),
             canWrite: (propertyAccess === "write" || propertyAccess === "readwrite"),
             description: AllJoynSchemaReader.getOptionalElement(propertyElement, "description"),
-            schemaName: schemaName,
             name: propertyName,
             propertyType: AllJoynSchemaReader.allJoynTypeToJsonSchema(propertyType),
+            schemaName: schemaName,
         };
     }
 
@@ -226,9 +226,9 @@ class AllJoynSchemaReader {
             canRead: false,
             canWrite: false,
             description: AllJoynSchemaReader.getOptionalElement(signalElement, "description"),
-            schemaName: schemaName,
             name: signalName,
             propertyType: signalType,
+            schemaName: schemaName,
         };
     }
 
@@ -257,9 +257,9 @@ class AllJoynSchemaReader {
 
         return {
             description: AllJoynSchemaReader.getOptionalElement(methodElement, "description"),
-            schemaName: schemaName,
             name: methodName,
             parameters: parameters,
+            schemaName: schemaName,
         };
     }
 
@@ -277,9 +277,9 @@ class AllJoynSchemaReader {
                 canRead: matchingProperty.canRead || property.canRead,
                 canWrite: matchingProperty.canWrite || property.canWrite,
                 description: matchingProperty.description || property.description,
-                schemaName: matchingProperty.schemaName,
                 name: matchingProperty.name,
                 propertyType: matchingProperty.propertyType,
+                schemaName: matchingProperty.schemaName,
             });
         } else {
             properties.push(property);

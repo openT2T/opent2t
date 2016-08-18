@@ -258,7 +258,7 @@ export class LocalPackageSource extends PackageSource {
         let schemaInfos: any[] = [];
         let schemaModulePaths: string[] = [];
         if (Array.isArray(manifestXmlRoot.schemas) &&
-                manifestXmlRoot.schemas.length == 1 &&
+                manifestXmlRoot.schemas.length === 1 &&
                 Array.isArray(manifestXmlRoot.schemas[0].schema)) {
             let schemaElements = manifestXmlRoot.schemas[0].schema;
 
@@ -278,7 +278,7 @@ export class LocalPackageSource extends PackageSource {
                     let schemaModulePath: string = schemaId + "/" + schemaId;
                     schemaModulePaths.push(packageJson.name + "/" + schemaModulePath);
                     schemaInfos.push({
-                        moduleName: schemaModulePath
+                        moduleName: schemaModulePath,
                     });
                 }
             });
@@ -288,7 +288,7 @@ export class LocalPackageSource extends PackageSource {
         let onboardingModulePath: string = "";
         let onboardingProperties: any = {};
         if (Array.isArray(manifestXmlRoot.onboarding) &&
-                manifestXmlRoot.onboarding.length == 1) {
+                manifestXmlRoot.onboarding.length === 1) {
             let onboardingElement = manifestXmlRoot.onboarding[0];
             let onboardingId = onboardingElement.$.id;
             if (onboardingId) {
@@ -315,9 +315,9 @@ export class LocalPackageSource extends PackageSource {
             schemas: schemaInfos,
             translators: [{
                 moduleName: translatorModulePath,
-                schemas: schemaModulePaths,
                 onboarding: onboardingModulePath,
                 onboardingProperties: onboardingProperties,
+                schemas: schemaModulePaths,
             }],
             version: packageJson.version,
         };

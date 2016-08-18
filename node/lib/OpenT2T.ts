@@ -1,13 +1,12 @@
 
-import { ThingSchema } from "./ThingSchema";
 import { IThingTranslator } from "./IThingTranslator";
-
+import { ThingSchema } from "./ThingSchema";
 import { EventEmitter } from "events";
 
 /**
  * Provides reflection-style access to thing properties and methods via translators.
  */
-export class ThingAccessor {
+export class OpenT2T {
     /**
      * Loads a schema from a module. This is just a convenience wrapper
      * around require(). Throws if the module could not be loaded.
@@ -115,15 +114,15 @@ export class ThingAccessor {
             translator: IThingTranslator,
             schemaName: string | ThingSchema,
             propertyName: string): Promise<any> {
-        let translatorForSchema = ThingAccessor.getTranslatorForSchema(translator, schemaName);
-        ThingAccessor.validateMemberName(propertyName);
+        let translatorForSchema = OpenT2T.getTranslatorForSchema(translator, schemaName);
+        OpenT2T.validateMemberName(propertyName);
 
-        let memberName = ThingAccessor.uncapitalize(propertyName);
+        let memberName = OpenT2T.uncapitalize(propertyName);
         let value: any = translatorForSchema[memberName];
         if (typeof value === "undefined") {
             // Allow (but do not require) the getProperty method to have an "Async" suffix
             // and/or return a Promise instead of an immediate value.
-            memberName = "get" + ThingAccessor.capitalize(propertyName);
+            memberName = "get" + OpenT2T.capitalize(propertyName);
             let getPropertyMethod: any = translatorForSchema[memberName];
             if (typeof getPropertyMethod === "function") {
                 // Invoke using call() to set `this` to translatorForSchema.
@@ -165,18 +164,18 @@ export class ThingAccessor {
             schemaName: string | ThingSchema,
             propertyName: string,
             value: any): Promise<void> {
-        let translatorForSchema = ThingAccessor.getTranslatorForSchema(translator, schemaName);
-        ThingAccessor.validateMemberName(propertyName);
+        let translatorForSchema = OpenT2T.getTranslatorForSchema(translator, schemaName);
+        OpenT2T.validateMemberName(propertyName);
 
         let setPropertyMethod: any;
-        let memberName = ThingAccessor.uncapitalize(propertyName);
+        let memberName = OpenT2T.uncapitalize(propertyName);
         let currentValue = translatorForSchema[memberName];
         if (typeof currentValue !== "undefined") {
             setPropertyMethod = function (newValue: any) { this[memberName] = newValue; };
         } else {
             // Allow (but do not require) the setProperty method to have an "Async" suffix
             // and/or return a Promise.
-            memberName = "set" + ThingAccessor.capitalize(propertyName);
+            memberName = "set" + OpenT2T.capitalize(propertyName);
             setPropertyMethod = translatorForSchema[memberName];
             if (typeof setPropertyMethod !== "function") {
                 memberName = memberName + "Async";
@@ -214,8 +213,8 @@ export class ThingAccessor {
             schemaName: string | ThingSchema,
             propertyName: string,
             callback: (value: any) => void): void {
-        let translatorForSchema = ThingAccessor.getTranslatorForSchema(translator, schemaName);
-        ThingAccessor.validateMemberName(propertyName);
+        let translatorForSchema = OpenT2T.getTranslatorForSchema(translator, schemaName);
+        OpenT2T.validateMemberName(propertyName);
 
         // The "on" method is defined by the Node.js EventEmitter class,
         // which device classes inherit from if they implement notifications.
@@ -245,8 +244,8 @@ export class ThingAccessor {
             schemaName: string | ThingSchema,
             propertyName: string,
             callback: (value: any) => void): void {
-        let translatorForSchema = ThingAccessor.getTranslatorForSchema(translator, schemaName);
-        ThingAccessor.validateMemberName(propertyName);
+        let translatorForSchema = OpenT2T.getTranslatorForSchema(translator, schemaName);
+        OpenT2T.validateMemberName(propertyName);
 
         // The "removeListener" method is defined by the Node.js EventEmitter class,
         // which device classes inherit from if they implement notifications.
@@ -280,8 +279,8 @@ export class ThingAccessor {
             schemaName: string | ThingSchema,
             methodName: string,
             args: any[]): Promise<any> {
-        let translatorForSchema = ThingAccessor.getTranslatorForSchema(translator, schemaName);
-        ThingAccessor.validateMemberName(methodName);
+        let translatorForSchema = OpenT2T.getTranslatorForSchema(translator, schemaName);
+        OpenT2T.validateMemberName(methodName);
         if (!Array.isArray(args)) {
             throw new TypeError("Args argument must be an array.");
         }
