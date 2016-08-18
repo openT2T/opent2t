@@ -4,5 +4,5 @@ node_modules/
 *.js.map
 *.d.ts
 !typings/**/*.d.ts
-!test/*.js
+!test/**/*.js
 !tspublish.js
