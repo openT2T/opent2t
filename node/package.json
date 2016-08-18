@@ -5,10 +5,10 @@
   "main": "index.js",
   "typings": "index.d.ts",
   "scripts": {
-    "build": "tsc",
-    "lint": "tslint --force lib/**/*.ts",
-    "test": "tsc && ava --verbose",
-    "prepublish": "tsc && node ./tspublish.js prepublish",
+    "build": "git clean -dfqx build/* && tsc",
+    "lint": "git clean -dfqx build/* && tsc && tslint --force lib/**/*.ts",
+    "test": "git clean -dfqx build/* && tsc && ava --verbose",
+    "prepublish": "git clean -dfqx build/* && tsc && node ./tspublish.js prepublish",
     "postpublish": "node ./tspublish.js postpublish"
   },
   "repository": {

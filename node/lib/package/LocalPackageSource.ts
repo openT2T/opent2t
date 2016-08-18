@@ -7,6 +7,8 @@ import { Parser } from "xml2js";
 import * as fs from "mz/fs";
 import * as path from "path";
 
+const packagePrefix: string = "opent2t-";
+
 /**
  * Reads package metadata and loads package information from a local source directory.
  *
@@ -83,7 +85,7 @@ export class LocalPackageSource extends PackageSource {
      * @returns {string} Derived NPM package name.
      */
     private static derivePackageName(name: string, type: string): string {
-        return "opent2t-" + type + "-" + name.replace(/\./g, "-");
+        return packagePrefix + type + "-" + name.replace(/\./g, "-");
     }
 
     /**
@@ -155,13 +157,17 @@ export class LocalPackageSource extends PackageSource {
      * package, or null if the requested package is not found at the source
      */
     public async getPackageInfoAsync(name: string): Promise<PackageInfo | null> {
-        if (name.startsWith("opent2t-schema-")) {
+        const schemaPackagePrefix: string = packagePrefix + "schema-";
+        const translatorPackagePrefix: string = packagePrefix + "translator-";
+        const onboardingPackagePrefix: string = packagePrefix + "onboarding-";
+
+        if (name.startsWith(schemaPackagePrefix)) {
             let schemaName: string =
-                    name.substr("opent2t-schema-".length).replace(/-/g, ".");
+                    name.substr(schemaPackagePrefix.length).replace(/-/g, ".");
             return await this.loadSchemaPackageInfoAsync(schemaName);
-        } else if (name.startsWith("opent2t-translator-")) {
+        } else if (name.startsWith(translatorPackagePrefix)) {
             let translatorName: string =
-                    name.substr("opent2t-translator-".length).replace(/-/g, ".");
+                    name.substr(translatorPackagePrefix.length).replace(/-/g, ".");
             // Search for a directory with a subdirectory matching the translator name.
             // Unfortunately the parent directory (schema name) a translator is under might
             // not be known ahead of time, so this search is required.
@@ -176,9 +182,9 @@ export class LocalPackageSource extends PackageSource {
                 }
             }
             return null;
-        } else if (name.startsWith("opent2t-onboarding-")) {
+        } else if (name.startsWith(onboardingPackagePrefix)) {
             let onboardingName: string =
-                    name.substr("opent2t-onboarding-".length).replace(/-/g, ".");
+                    name.substr(onboardingPackagePrefix.length).replace(/-/g, ".");
             return await this.loadOnboardingPackageInfoAsync(onboardingName);
         } else {
             // TODO: Scan all package.json files to find one with matching package name??
@@ -258,7 +264,7 @@ export class LocalPackageSource extends PackageSource {
         let schemaInfos: any[] = [];
         let schemaModulePaths: string[] = [];
         if (Array.isArray(manifestXmlRoot.schemas) &&
-                manifestXmlRoot.schemas.length == 1 &&
+                manifestXmlRoot.schemas.length === 1 &&
                 Array.isArray(manifestXmlRoot.schemas[0].schema)) {
             let schemaElements = manifestXmlRoot.schemas[0].schema;
 
@@ -278,7 +284,7 @@ export class LocalPackageSource extends PackageSource {
                     let schemaModulePath: string = schemaId + "/" + schemaId;
                     schemaModulePaths.push(packageJson.name + "/" + schemaModulePath);
                     schemaInfos.push({
-                        moduleName: schemaModulePath
+                        moduleName: schemaModulePath,
                     });
                 }
             });
@@ -288,7 +294,7 @@ export class LocalPackageSource extends PackageSource {
         let onboardingModulePath: string = "";
         let onboardingProperties: any = {};
         if (Array.isArray(manifestXmlRoot.onboarding) &&
-                manifestXmlRoot.onboarding.length == 1) {
+                manifestXmlRoot.onboarding.length === 1) {
             let onboardingElement = manifestXmlRoot.onboarding[0];
             let onboardingId = onboardingElement.$.id;
             if (onboardingId) {
@@ -315,9 +321,9 @@ export class LocalPackageSource extends PackageSource {
             schemas: schemaInfos,
             translators: [{
                 moduleName: translatorModulePath,
-                schemas: schemaModulePaths,
                 onboarding: onboardingModulePath,
                 onboardingProperties: onboardingProperties,
+                schemas: schemaModulePaths,
             }],
             version: packageJson.version,
         };

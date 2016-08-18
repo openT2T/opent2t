@@ -1,10 +1,10 @@
 
 import {
-    ThingSchema,
+    JsonSchema,     // tslint:disable-line:no-unused-variable
     ThingMethod,    // tslint:disable-line:no-unused-variable
     ThingParameter, // tslint:disable-line:no-unused-variable
     ThingProperty,  // tslint:disable-line:no-unused-variable
-    JsonSchema,     // tslint:disable-line:no-unused-variable
+    ThingSchema,
 } from "../ThingSchema";
 
 import * as fs from "mz/fs";

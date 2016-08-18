@@ -1,10 +1,14 @@
 
-export { ThingAccessor } from "./ThingAccessor";
+export { IThingTranslator } from "./IThingTranslator";
+
 export {
+    JsonSchema,
     ThingCharacteristic,
     ThingSchema,
     ThingMethod,
     ThingProperty,
-    JsonSchema,
 } from "./ThingSchema";
-export { IThingTranslator } from "./IThingTranslator";
+
+import { OpenT2T } from "./OpenT2T";
+export { OpenT2T };
+export default OpenT2T;
