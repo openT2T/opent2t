@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<manifest>
+  <schemas>
+      <schema id="org.opent2t.test.onboarding.one" main="true" type="AllJoyn" />
+  </schemas>
+</manifest>

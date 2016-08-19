@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!DOCTYPE node PUBLIC "-//freedesktop//DTD D-BUS Object Introspection 1.0//EN" "http://standards.freedesktop.org/dbus/introspect-1.0.dtd"[]>
+<!--  This is the metadata for a category of things that are connected via the Wink Hub. -->
+<node>
+    <interface name="org.opent2t.test.onboarding.one">
+        <!-- Defines the metadata required to start onboarding.
+             These input parameters are unique to a particular device type that supports this onboarding type,
+             e.g. auth URLs, RF bands, regular expressions to find the device on a common bus, etc. -->
+         <method name="onboard">
+             <arg name="username" type="s" direction="in" />
+             <arg name="password" type="u" direction="in" />
+             <arg name="client_id" type="s" direction="in" />
+             <arg name="client_secret" type="s" direction="in"/>
+        </method>
+        <!-- Defines the metadata returned by onboarding. This is converted to the props array on the device
+             object, which is passed in to translators that implement this onboarding type at runtime. -->
+        <signal name="success">
+            <arg name="access_token" type="s" direction="in" />
+            <arg name="id" type="s" direction="in" />
+            <arg name="message" type="s" direction="in" />
+        </signal>
+        <!-- Called when there is an error during onboarding -->
+        <signal name="error">
+            <arg name="type" type="s" direction="out"/>
+            <arg name="message" type="s" direction="out"/>
+        </signal>
+    </interface>
+</node>

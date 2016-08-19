@@ -52,13 +52,17 @@ export class LocalPackageSource extends PackageSource {
                 packageJson.opent2t.translators[translatorInfo.moduleName] = {
                     description: translatorInfo.description,
                     onboarding: translatorInfo.onboarding,
+                    onboardingFlow: translatorInfo.onboardingFlow,
                     onboardingProperties: translatorInfo.onboardingProperties,
                     schemas: translatorInfo.schemas,
                 };
             });
         }
 
-        // TODO: Merge onboarding info.
+        if (packageInfo.onboardingInfo) {
+            packageJson.opent2t.onboardingInfo.moduleName = packageInfo.onboardingInfo.moduleName;
+            packageJson.opent2t.onboardingInfo.schemas = packageInfo.onboardingInfo.schemas;
+        }
     }
 
     /**
@@ -224,6 +228,7 @@ export class LocalPackageSource extends PackageSource {
         return {
             description: packageJson.description,
             name: packageJson.name,
+            onboardingInfo: null,
             schemas: [{
                 moduleName: schemaModulePath,
             }],
@@ -293,6 +298,7 @@ export class LocalPackageSource extends PackageSource {
         // Parse onboarding info from the manifest.
         let onboardingModulePath: string = "";
         let onboardingProperties: any = {};
+        let onboardingFlowElements: any[] = [];
         if (Array.isArray(manifestXmlRoot.onboarding) &&
                 manifestXmlRoot.onboarding.length === 1) {
             let onboardingElement = manifestXmlRoot.onboarding[0];
@@ -302,7 +308,8 @@ export class LocalPackageSource extends PackageSource {
                 // from the onboarding id.
                 let onboardingPackageName: string =
                         LocalPackageSource.derivePackageName(onboardingId, "onboarding");
-                onboardingModulePath = onboardingPackageName + "/" + onboardingId;
+                onboardingModulePath = onboardingPackageName + "/" + onboardingId + "/js/thingOnboarding";
+
                 if (Array.isArray(onboardingElement.arg)) {
                     onboardingElement.arg.forEach((argElement: any) => {
                         let argName: string = argElement.$.name;
@@ -312,16 +319,42 @@ export class LocalPackageSource extends PackageSource {
                         }
                     });
                 }
+
+                if (Array.isArray(onboardingElement.onboardflow)) {
+                    onboardingElement.onboardflow.forEach((onboardFlowElement: any) => {
+                        let flowElements: any[] = [];
+                        let onboardFlowName: string = onboardFlowElement.$.name;
+                        if (Array.isArray(onboardFlowElement.flow)) {
+                            onboardFlowElement.flow.forEach((flowElement: any) => {
+                                let descriptionProperties: any = {};
+                                flowElement.description.forEach((descriptionElement: any) => {
+                                    descriptionProperties[descriptionElement.$.language] = descriptionElement._;
+                                }); // <description>
+                                flowElements.push({
+                                    descriptions: descriptionProperties,
+                                    name: flowElement.arg[0].$.name,
+                                    type: flowElement.$.type,
+                                });
+                            }); // <flow>
+                        }
+                        onboardingFlowElements.push({
+                            flow: flowElements,
+                            name: onboardFlowName,
+                        });
+                    }); // <onboardflow>
+                }
             }
         }
 
         return {
             description: packageJson.description,
             name: packageJson.name,
+            onboardingInfo: null,
             schemas: schemaInfos,
             translators: [{
                 moduleName: translatorModulePath,
                 onboarding: onboardingModulePath,
+                onboardingFlow: onboardingFlowElements,
                 onboardingProperties: onboardingProperties,
                 schemas: schemaModulePaths,
             }],
@@ -330,9 +363,61 @@ export class LocalPackageSource extends PackageSource {
     }
 
     private async loadOnboardingPackageInfoAsync(
-            onboardingName: string): Promise<PackageInfo | null> {
-        // TODO: Load onboarding package info from XML + package.json
-        return Promise.resolve(null);
+        onboardingName: string): Promise<PackageInfo | null> {
+
+        // By convention there is package.json files under 'js' directory. 
+        let onboardingManifestPath = onboardingName + "/js/manifest.xml";
+        let onboardinPackageJsonPath = onboardingName + "/js/package.json";
+        let translatorModulePath = onboardingName + "/js/thingOnboarding";
+
+        if (!(await fs.exists(path.join(this.sourceDirectory, translatorModulePath + ".js"))) ||
+            !(await fs.exists(path.join(this.sourceDirectory, onboardingManifestPath))) ||
+            !(await fs.exists(path.join(this.sourceDirectory, onboardinPackageJsonPath)))) {
+            // The requested onboarding package was not found.
+            return null;
+        }
+
+        let packageJson: any = await this.loadJsonAsync(onboardinPackageJsonPath);
+        let manifestXml: any = await this.loadXmlAsync(onboardingManifestPath);
+        let manifestXmlRoot: any = manifestXml && manifestXml.manifest;
+
+        if (!packageJson || !manifestXmlRoot) {
+            return null;
+        }
+
+        // Parse schema info from the manifest.
+        let schemaInfos: any[] = [];
+        let schemaModulePaths: string[] = [];
+        if (Array.isArray(manifestXmlRoot.schemas) &&
+                manifestXmlRoot.schemas.length == 1 &&
+                Array.isArray(manifestXmlRoot.schemas[0].schema)) {
+            let schemaElements = manifestXmlRoot.schemas[0].schema;
+           // TODO: Will onboarding schemas also have 'main' schema concept ?
+
+            schemaElements.forEach((schemaElement: any) => {
+                let schemaId: string = schemaElement.$.id;
+                if (schemaId) {
+                    // By convention the schema module file and its parent directory
+                    // both match the name of the schema.
+                    let schemaModulePath: string = packageJson.name + "/" + schemaId + "/" + schemaId;
+                    schemaModulePaths.push(schemaModulePath);
+                    schemaInfos.push({
+                        moduleName: schemaModulePath
+                    });
+                }
+            });
+        }
+
+        return {
+            description: packageJson.description,
+            name: packageJson.name,
+            onboardingInfo: {
+                moduleName: translatorModulePath,
+                schemas: schemaModulePaths },
+            schemas: schemaInfos,
+            translators: [],
+            version: packageJson.version,
+        };
     }
 
     /**

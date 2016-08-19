@@ -1,0 +1,8 @@
+{
+  "name": "opent2t-translator-com-one-hub",
+  "version": "1.0.0",
+  "description": "One hub translator",
+  "homepage": "http://opentranslatorstothings.org",
+  "main": "thingtranslator.js",
+  "license": "MIT"
+}
