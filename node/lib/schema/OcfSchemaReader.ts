@@ -17,37 +17,7 @@ export = OcfSchemaReader;
  */
 class OcfSchemaReader {
     /**
-     * Reads a thing schema from an OCF RAML file and supporting JSON files synchronously.
-     * (A synchronous implementation allows a schema to be loaded via a require().)
-     *
-     * @param {string} filePath  Path to the source RAML file
-     * @returns {ThingSchema} Schema parsed from the RAML and JSON files
-     */
-    public static readThingSchemaFromFiles(ramlFilePath: string): ThingSchema {
-        let ramlSchema: (raml.api08.Api | raml.api10.Api) = raml.loadApiSync(ramlFilePath);
-        let thingSchema: ThingSchema = OcfSchemaReader.ramlToThingSchema(ramlSchema);
-
-        let schemaResolver: (fileName: string) => string =
-            OcfSchemaReader.resolveJsonSchema.bind(null, path.dirname(ramlFilePath));
-
-        for (let methodIndex = 0; methodIndex < thingSchema.methods.length; methodIndex++) {
-            let method = thingSchema.methods[methodIndex];
-            for (let paramIndex = 0; paramIndex < method.parameters.length; paramIndex++) {
-                let parameter = method.parameters[paramIndex];
-                method.parameters[paramIndex] = {
-                    isOut: parameter.isOut,
-                    name: parameter.name,
-                    parameterType: JsonSchema.resolveReferences(
-                        parameter.parameterType, schemaResolver),
-                };
-            }
-        }
-
-        return thingSchema;
-    }
-
-    /**
-     * Reads a thing schema from an OCF RAML file and supporting JSON files asynchronously.
+     * Reads a thing schema from an OCF RAML file and supporting JSON files.
      *
      * @param {string} filePath  Path to the source RAML file
      * @returns {Promise<ThingSchema>} Schema parsed from the RAML and JSON files
@@ -57,8 +27,13 @@ class OcfSchemaReader {
         let ramlSchema: (raml.api08.Api | raml.api10.Api) = await raml.loadApi(ramlFilePath);
         let thingSchema: ThingSchema = OcfSchemaReader.ramlToThingSchema(ramlSchema);
 
+        // The same JSON schemas will be referenced multiple times by a RAML file. So keep a
+        // simple cache during the resolve operation to avoid reading files more than once.
+        let resolveCache: { [ uri: string ]: string } = {};
+
         let schemaResolver: (fileName: string) => Promise<string> =
-            OcfSchemaReader.resolveJsonSchemaAsync.bind(null, path.dirname(ramlFilePath));
+                OcfSchemaReader.resolveSchemaReferenceAsync.bind(
+                    null, path.dirname(ramlFilePath), resolveCache);
 
         for (let methodIndex = 0; methodIndex < thingSchema.methods.length; methodIndex++) {
             let method = thingSchema.methods[methodIndex];
@@ -345,36 +320,29 @@ class OcfSchemaReader {
     }
 
     /**
-     * Look for a JSON schema file in the current directory or in a sibling directory
-     * having the same base name as the file. Used with JsonSchema.resolveReferences().
+     * Look for a referenced JSON schema file in the same directory as the RAML file or
+     * in a sibling directory having the same base name as the file. Used with
+     * JsonSchema.resolveReferencesAsync().
      */
-    private static resolveJsonSchema(
-            ramlDirectory: string, fileName: string): string {
-        let filePath: string = path.join(ramlDirectory, fileName);
-        if (!fs.existsSync(filePath)) {
-            filePath = path.join(
-                    ramlDirectory, "..", path.basename(fileName, ".json"), fileName);
-            if (!fs.existsSync(filePath)) {
-                throw new Error("JSON schema file not found: " + fileName);
-            }
-        }
-        return fs.readFileSync(filePath, "utf8");
-    }
+    private static async resolveSchemaReferenceAsync(
+            ramlDirectory: string,
+            resolveCache: { [ uri: string ]: string },
+            fileUri: string): Promise<string> {
+        let contents: string = resolveCache[fileUri];
 
-    /**
-     * Look for a JSON schema file in the current directory or in a sibling directory
-     * having the same base name as the file.Used with JsonSchema.resolveReferencesAsync().
-     */
-    private static async resolveJsonSchemaAsync(
-            ramlDirectory: string, fileName: string): Promise<string> {
-        let filePath: string = path.join(ramlDirectory, fileName);
-        if (!(await fs.exists(filePath))) {
-            filePath = path.join(
-                    ramlDirectory, "..", path.basename(fileName, ".json"), fileName);
+        if (typeof contents !== "string") {
+            let filePath: string = path.join(ramlDirectory, fileUri);
             if (!(await fs.exists(filePath))) {
-                throw new Error("JSON schema file not found: " + fileName);
+                filePath = path.join(
+                        ramlDirectory, "..", path.basename(fileUri, ".json"), fileUri);
+                if (!(await fs.exists(filePath))) {
+                    throw new Error("JSON schema file not found: " + fileUri);
+                }
             }
+            contents = await fs.readFile(filePath, "utf8");
+            resolveCache[fileUri] = contents;
         }
-        return await fs.readFile(filePath, "utf8");
+
+        return contents;
     }
 }

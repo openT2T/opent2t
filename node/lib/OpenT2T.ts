@@ -35,19 +35,18 @@ export class OpenT2T {
     /**
      * Loads a schema from a module. (Overloaded method implementation.)
      */
-    public static getSchemaAsync(): Promise<ThingSchema> {
+    public static async getSchemaAsync(): Promise<ThingSchema> {
         let schemaModuleName: string = (arguments.length > 1 ?
                 arguments[0] + "/" + arguments[1] : arguments[0]);
-        return new Promise<ThingSchema>((resolve, reject) => {
-            let thingSchema: ThingSchema;
-            try {
-                thingSchema = require(schemaModuleName);
-            } catch (err) {
-                reject(err);
-                return;
-            }
-            resolve(thingSchema);
-        });
+        let thingSchema: ThingSchema;
+        let schemaExport: any = require(schemaModuleName);
+        if (typeof schemaExport.then === "function") {
+            // The schema module may indicate asynchronous loading by exporting a promise.
+            thingSchema = await schemaExport;
+        } else {
+            thingSchema = schemaExport;
+        }
+        return thingSchema;
     }
 
     /**

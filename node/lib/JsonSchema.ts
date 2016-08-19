@@ -1,4 +1,7 @@
 
+import * as path from "path";
+const $RefParser = require("json-schema-ref-parser");
+
 /**
  * Describes the schema of JSON data.
  * Reference http://json-schema.org/ and
@@ -6,6 +9,7 @@
  */
 export interface JsonSchema {
     id?: string;
+    $ref?: string;
     $schema?: string;
     title?: string;
     description?: string;
@@ -45,31 +49,36 @@ export interface JsonSchema {
  */
 export class JsonSchema {
     /**
-     * Synchronously resolves "$ref" includes in the JSON schema.
-     *
-     * @param {JsonSchema} jsonSchema  Schema with "$ref" includes.
-     * @param {(name: string) => string} resolver  A callback function that takes the name
-     *     of a JSON file and returns the contents of that file.
-     * @returns {JsonSchema>  Schema with references resolved.
-     */
-    public static resolveReferences(
-            jsonSchema: JsonSchema, fileResolver: (fileName: string) => string): JsonSchema {
-        // TODO: Resolve JSON schema references.
-        return jsonSchema;
-    }
-
-    /**
-     * Asynchronously resolves "$ref" includes in the JSON schema.
+     * Resolves "$ref" includes in a JSON schema.
      *
      * @param {JsonSchema} jsonSchema  Schema with "$ref" includes.
      * @param {(name: string) => Promise<string>} resolver  A callback function that takes
-     *     the name of a JSON file and asynchronously returns the contents of that file.
+     *     the URI of a referenced file and asynchronously returns the contents of that file.
      * @returns {Promise<JsonSchema>}  Schema with references resolved.
      */
-    public static resolveReferencesAsync(
+    public static async resolveReferencesAsync(
             jsonSchema: JsonSchema,
-            fileResolver: (fileName: string) => Promise<string>): Promise<JsonSchema> {
-        // TODO: Resolve JSON schema references.
-        return Promise.resolve(jsonSchema);
+            fileResolver: (fileUri: string) => Promise<string>): Promise<JsonSchema> {
+        const fileResolverAdapter = {
+            canRead: /\.json$/i,
+            read: function(file: { url: string, extension: string }): Promise<string> {
+                // The dereferencer assumes paths are relative to the CWD.
+                // But the resolver just expectes relative paths.
+                // (The top schema is probably not in the CWD.)
+                let relativeUri: string = path.relative(process.cwd(), file.url);
+                return fileResolver(relativeUri);
+            }
+        };
+
+        let dereferencedSchema: JsonSchema = await $RefParser.dereference(jsonSchema, {
+            resolve: {
+                file: fileResolverAdapter,
+                http: false,
+            },
+            dereference: {
+                circular: "ignore",
+            }
+        });
+        return dereferencedSchema;
     }
 }

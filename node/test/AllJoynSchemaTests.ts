@@ -139,8 +139,8 @@ test("AllJoyn type <-> JSON schema: a{s(i(ss))}", t => {
     });
 });
 
-test("AllJoyn schema <-> ThingSchema: A", t => {
-    let thingSchema: ThingSchema = requireTest(
+test("AllJoyn schema <-> ThingSchema: A", async t => {
+    let thingSchema: ThingSchema = await requireTest(
             "./org.opent2t.test.schemas.a/org.opent2t.test.schemas.a");
 
     t.is(typeof thingSchema, "object");

@@ -17,21 +17,8 @@ export = AllJoynSchemaReader;
  * Reference https://wiki.allseenalliance.org/irb/extended_introspection_xml
  */
 class AllJoynSchemaReader {
-
     /**
-     * Reads thing schemas from an AllJoyn schema XML file synchronously.
-     * (A synchronous implementation allows a schema to be loaded via a require().)
-     *
-     * @param {string} filePath  Path to the source XML file
-     * @returns {ThingSchema[]} One or more schemas parsed from the file
-     */
-    public static readThingSchemasFromFile(filePath: string): ThingSchema[] {
-        let allJoynXml = fs.readFileSync(filePath, "utf8");
-        return AllJoynSchemaReader.readThingSchemas(allJoynXml);
-    }
-
-    /**
-     * Reads thing schemas from an AllJoyn schema XML file asynchronously.
+     * Reads thing schemas from an AllJoyn schema XML file.
      *
      * @param {string} filePath  Path to the source XML file
      * @returns {Promise<ThingSchema[]>} One or more schemas parsed from the file
