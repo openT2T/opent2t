@@ -96,23 +96,25 @@ test("Get package B info", async t => {
     }
 });
 
+const testHubPackageOne = "opent2t-translator-com-one-hub";
+const testHubSchemaOne = "org.opent2t.sample.hub.superpopular";
+const testHubOne = "com.one.hub";
+
 test("Get all packages info", async t => {
     t.truthy(testPackageSource.getAllPackageInfoAsync);
     if (testPackageSource.getAllPackageInfoAsync) {
         let allPackageInfo: PackageInfo[] = await testPackageSource.getAllPackageInfoAsync();
         t.true(Array.isArray(allPackageInfo));
-        t.is(allPackageInfo.length, 2);
+        t.is(allPackageInfo.length, 3);
         t.is(typeof allPackageInfo[0], "object");
-        t.is(allPackageInfo[0].name, testPackageOne);
-        t.is(typeof allPackageInfo[0], "object");
-        t.is(allPackageInfo[1].name, testPackageTwo);
+        t.is(allPackageInfo[0].name, testHubPackageOne);
+        t.is(typeof allPackageInfo[1], "object");
+        t.is(allPackageInfo[1].name, testPackageOne);
+        t.is(typeof allPackageInfo[2], "object");
+        t.is(allPackageInfo[2].name, testPackageTwo);
     }
 });
 
-
-const testHubPackageOne = "opent2t-translator-com-one-hub";
-const testHubSchemaOne = "org.opent2t.sample.hub.superpopular";
-const testHubOne = "com.one.hub";
 
 test("Get package A info", async t => {
     let packageInfo: PackageInfo | null = await testPackageSource.getPackageInfoAsync(testHubPackageOne);
