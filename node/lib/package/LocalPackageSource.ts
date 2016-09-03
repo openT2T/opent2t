@@ -333,7 +333,7 @@ export class LocalPackageSource extends PackageSource {
                                 flowElements.push({
                                     descriptions: descriptionProperties,
                                     name: flowElement.arg[0].$.name,
-                                    type: flowElement.$.type,
+                                    type: flowElement.arg[0].$.type,
                                 });
                             }); // <flow>
                         }
