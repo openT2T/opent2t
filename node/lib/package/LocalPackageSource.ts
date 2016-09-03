@@ -330,11 +330,17 @@ export class LocalPackageSource extends PackageSource {
                                 flowElement.description.forEach((descriptionElement: any) => {
                                     descriptionProperties[descriptionElement.$.language] = descriptionElement._;
                                 }); // <description>
-                                flowElements.push({
+                                
+                                var toPush = {
                                     descriptions: descriptionProperties,
                                     name: flowElement.arg[0].$.name,
-                                    type: flowElement.arg[0].$.type,
-                                });
+                                };
+
+                                if (!!flowElement.$ && !!flowElement.$.type) {
+                                    toPush.type = flowElement.$.type;
+                                }
+
+                                flowElements.push(toPush);
                             }); // <flow>
                         }
                         onboardingFlowElements.push({
