@@ -40,8 +40,8 @@ export class OpenT2T {
         let schemaModuleName: string = (arguments.length > 1 ?
                 arguments[0] + "/" + arguments[1] : arguments[0]);
 
-        //let logger = new Logger();
-        Logger.info("schemaModuleName: " + schemaModuleName);
+        let logger = new Logger();
+        logger.info("schemaModuleName: ", schemaModuleName);
 
         let thingSchema: ThingSchema;
         let schemaExport: any = require(schemaModuleName);
@@ -91,8 +91,9 @@ export class OpenT2T {
                 arguments[0] + "/" + arguments[1] : arguments[0]);
         let properties: any = (arguments.length > 2 ? arguments[2] : arguments[1]);
 
-        //let logger = new Logger();
-        Logger.info("translatorModuleName: " + translatorModuleName);
+        let logger = new Logger();
+        logger.verbose("Logging from Opent2t library");
+        logger.info("translatorModuleName: ", translatorModuleName);
 
         return new Promise<IThingTranslator>((resolve, reject) => {
             let translator: IThingTranslator;

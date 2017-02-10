@@ -17,12 +17,13 @@ export * from "./ILogger"
 export * from "./LoggerUtilities"
 
 import { Logger } from "./Logger";
-//let logger = new Logger();
+let logger = new Logger();
 
-Logger.error("0");
-Logger.warn("1");
-Logger.info("2");
-Logger.verbose("3");
-Logger.debug("4");
-Logger.silly("5");
+// Test log statements
+logger.error("0");
+logger.warn("1");
+logger.info("2");
+logger.verbose("3");
+logger.debug("4");
+logger.silly("5");
 

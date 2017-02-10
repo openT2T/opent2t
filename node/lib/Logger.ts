@@ -7,6 +7,7 @@ import {LoggerInstance} from "winston";
 export class Logger implements ILogger {
     //private transactionID = uuid.v4();
     private logger : LoggerInstance;
+    private static flag: boolean = true;
 
     private normalize = (logObject) =>{
         if(logObject === null || logObject === undefined){
@@ -53,17 +54,15 @@ export class Logger implements ILogger {
 
         // If you want to turn off console logging 
         this.logger.remove(winston.transports.Console);
-
         this.logger.add(winston.transports.Console, {colorize: true});
-       
-/*        this.logger.loggers.options.transports = [winston.transports.File, {
-            filename: 'logfile.log',
-            handleExceptions: true,
-            level: 'silly'}];*/
 
-        this.logger.add(winston.transports.File, {
-            filename: 'logfile.log',
-            handleExceptions: true,
-            level: 'silly'});
+        if(Logger.flag == true)
+        {
+            this.logger.add(winston.transports.File, {
+                filename: 'testfile.log',
+                handleExceptions: true,
+                level: 'silly'});            
+            Logger.flag = false;
+        }        
     }
 }
