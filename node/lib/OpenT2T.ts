@@ -2,6 +2,7 @@
 import { IThingTranslator } from "./IThingTranslator";
 import { ThingSchema } from "./ThingSchema";
 import { EventEmitter } from "events";
+import {OpenT2TError} from "./OpenT2TError";
 
 /**
  * Provides reflection-style access to thing properties and methods via translators.
@@ -305,7 +306,7 @@ export class OpenT2T {
             return result;
         }
     }
-
+    
     /**
      * Check for a `resolveSchema` method on the translator, and if found use it to request an object
      * that implements properties and methods for the requested schema.
