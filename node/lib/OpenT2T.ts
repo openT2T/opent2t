@@ -2,11 +2,12 @@
 import { IThingTranslator } from "./IThingTranslator";
 import { ThingSchema } from "./ThingSchema";
 import { EventEmitter } from "events";
+import { Logger } from "./Logger";
 
 /**
  * Provides reflection-style access to thing properties and methods via translators.
  */
-export class OpenT2T {
+export class OpenT2T {   
     /**
      * Loads a schema from a module. This is just a convenience wrapper
      * around require(). Throws if the module could not be loaded.
@@ -38,6 +39,10 @@ export class OpenT2T {
     public static async getSchemaAsync(): Promise<ThingSchema> {
         let schemaModuleName: string = (arguments.length > 1 ?
                 arguments[0] + "/" + arguments[1] : arguments[0]);
+
+        //let logger = new Logger();
+        Logger.info("schemaModuleName: " + schemaModuleName);
+
         let thingSchema: ThingSchema;
         let schemaExport: any = require(schemaModuleName);
         if (typeof schemaExport.then === "function") {
@@ -46,6 +51,7 @@ export class OpenT2T {
         } else {
             thingSchema = schemaExport;
         }
+
         return thingSchema;
     }
 
@@ -85,6 +91,9 @@ export class OpenT2T {
                 arguments[0] + "/" + arguments[1] : arguments[0]);
         let properties: any = (arguments.length > 2 ? arguments[2] : arguments[1]);
 
+        //let logger = new Logger();
+        Logger.info("translatorModuleName: " + translatorModuleName);
+
         return new Promise<IThingTranslator>((resolve, reject) => {
             let translator: IThingTranslator;
             try {
@@ -115,7 +124,6 @@ export class OpenT2T {
             propertyName: string): Promise<any> {
         let translatorForSchema = OpenT2T.getTranslatorForSchema(translator, schemaName);
         OpenT2T.validateMemberName(propertyName);
-
         let memberName = OpenT2T.uncapitalize(propertyName);
         let value: any = translatorForSchema[memberName];
         if (typeof value === "undefined") {

@@ -5,10 +5,14 @@
         "module": "commonjs",
         "target": "es2015",
         "declaration": true,
-        "noImplicitAny": true,
+        //"noImplicitAny": true,
         "noImplicitReturns": true,
         "strictNullChecks": true,
-        "sourceMap": true
+        "sourceMap": true,
+        "baseUrl": ".", // Was getting compilation errors before adding this
+        "paths": {
+            "winston": ["node_modules/winston/lib/winston"]
+        }
     },
     "exclude": [
         "build",

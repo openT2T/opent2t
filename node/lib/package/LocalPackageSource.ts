@@ -334,6 +334,7 @@ export class LocalPackageSource extends PackageSource {
                                 var toPush = {
                                     descriptions: descriptionProperties,
                                     name: flowElement.arg[0].$.name,
+                                    type: undefined,
                                 };
 
                                 if (!!flowElement.$ && !!flowElement.$.type) {
