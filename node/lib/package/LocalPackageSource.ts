@@ -329,12 +329,11 @@ export class LocalPackageSource extends PackageSource {
                                 let descriptionProperties: any = {};
                                 flowElement.description.forEach((descriptionElement: any) => {
                                     descriptionProperties[descriptionElement.$.language] = descriptionElement._;
-                                }); // <description>
-                                
-                                var toPush = {
+                                }); // <description>                              
+                                let toPush = {
                                     descriptions: descriptionProperties,
                                     name: flowElement.arg[0].$.name,
-                                    type: undefined
+                                    type: undefined,
                                 };
 
                                 if (!!flowElement.$ && !!flowElement.$.type) {
@@ -396,7 +395,7 @@ export class LocalPackageSource extends PackageSource {
         let schemaInfos: any[] = [];
         let schemaModulePaths: string[] = [];
         if (Array.isArray(manifestXmlRoot.schemas) &&
-                manifestXmlRoot.schemas.length == 1 &&
+                manifestXmlRoot.schemas.length === 1 &&
                 Array.isArray(manifestXmlRoot.schemas[0].schema)) {
             let schemaElements = manifestXmlRoot.schemas[0].schema;
            // TODO: Will onboarding schemas also have 'main' schema concept ?
@@ -409,7 +408,7 @@ export class LocalPackageSource extends PackageSource {
                     let schemaModulePath: string = packageJson.name + "/" + schemaId + "/" + schemaId;
                     schemaModulePaths.push(schemaModulePath);
                     schemaInfos.push({
-                        moduleName: schemaModulePath
+                        moduleName: schemaModulePath,
                     });
                 }
             });

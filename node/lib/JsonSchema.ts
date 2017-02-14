@@ -67,17 +67,17 @@ export class JsonSchema {
                 // (The top schema is probably not in the CWD.)
                 let relativeUri: string = path.relative(process.cwd(), file.url);
                 return fileResolver(relativeUri);
-            }
+            },
         };
 
         let dereferencedSchema: JsonSchema = await $RefParser.dereference(jsonSchema, {
+            dereference: {
+                circular: "ignore",
+            },
             resolve: {
                 file: fileResolverAdapter,
                 http: false,
             },
-            dereference: {
-                circular: "ignore",
-            }
         });
         return dereferencedSchema;
     }
