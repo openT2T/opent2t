@@ -13,6 +13,7 @@ export class OpenT2TConstants {
     public static NotImplemented: string = "Not Implemented";
     public static DeviceNotFound: string  = "Device not found";
     public static InvalidResourceId: string = "Invalid reourceId";
+    public static InvalidHubId: string = "Invalid hub id";
     public static ResourceNotFound: string = "Resource not found";
     public static HMacSignatureVerificationFailed: string = "Payload signature doesn't match";
     public static InvalidAuthInfoInput: string =
