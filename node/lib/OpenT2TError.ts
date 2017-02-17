@@ -34,4 +34,15 @@ export class OpenT2TError extends Error {
 
         this.name = "OpenT2TError";
     }
+
+    public toJSON(): OpenT2TError {
+    // copy all fields from `this` to an empty object and return in
+    return Object.assign({}, this, {
+      // convert fields that need converting
+      innerErrorMessage: this.innerError.message,
+      innerErrorName: this.innerError.name,
+      innerErrorStack: this.innerError.stack,
+      message: this.message,
+    });
+  }
 }
