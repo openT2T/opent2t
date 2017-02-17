@@ -104,9 +104,14 @@ test("Thing Two method that throws + notification", async t => {
 });
 
 test("JSON.stringify() on OpenT2TError object returns a valid JSON object", async t=> {
-    let error = new OpenT2TError(400, "My Custom Message", new Error("innerError"));
+    let customMessage = "My custom error message";
+    let innerErrorMessage = "My Inner Error is a TypeError";
+    let innerError = new TypeError(innerErrorMessage);
+    let error = new OpenT2TError(400, customMessage, innerError);
     let jsonObjectString = JSON.stringify(error);
     console.log(jsonObjectString);
-    t.true(jsonObjectString.search("message") >= 0, 
-    "Found inner property `message` in json representation of OpenT2TError object");
+    t.true(jsonObjectString.search(customMessage) >= 0);
+    t.true(jsonObjectString.search(innerErrorMessage) >= 0);
+    t.true(jsonObjectString.search("innerErrorStack") >= 0);
+    t.true(jsonObjectString.search(innerError.name) >= 0);
 });
