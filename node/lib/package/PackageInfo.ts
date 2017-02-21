@@ -197,7 +197,6 @@ export class PackageTranslatorInfo {
      */
     public readonly onboardingProperties: { [propertyName: string]: string };
 
-
     /**
      * Onboarding information pertaining to the hub device, which will have the onboarding flow information. 
      * For example, an 'input' flow type for acquiring username/client_id/client_secret
@@ -206,8 +205,7 @@ export class PackageTranslatorInfo {
     public readonly onboardingFlow: OnboardingFlow[];
 }
 
-export class PackageOnboardingInfo
-{
+export class PackageOnboardingInfo {
     /**
      * Relative path and name of the onboarding module within the package. This is not a
      * fully-qualified name; a package name prefix is normally required to resolve the
@@ -222,8 +220,7 @@ export class PackageOnboardingInfo
     public readonly schemas: string[];
 }
 
-export class OnboardingFlow
-{
+export class OnboardingFlow {
     /**
      * Name of the onboarding flow method. Example: 'getUserInput'' to indicate input from the end-user.
      */
@@ -235,8 +232,7 @@ export class OnboardingFlow
     public readonly flow: OnboardingFlowElement[];
 }
 
-export class OnboardingFlowElement
-{
+export class OnboardingFlowElement {
     /**
      * Specifies type of the flow step (ex: input, password). Each type has specified meaning.
      * For example, 'password' type indicates the UI to hide the text, when the user types.  
@@ -253,4 +249,3 @@ export class OnboardingFlowElement
      */
     public readonly descriptions: { [locale: string]: string };
 }
-
