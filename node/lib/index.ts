@@ -26,4 +26,3 @@ logger.info("2");
 logger.verbose("3");
 logger.debug("4");
 logger.silly("5");
-
