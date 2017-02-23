@@ -6,3 +6,4 @@ node_modules/
 !typings/**/*.d.ts
 !test/**/*.js
 !tspublish.js
+/README.md

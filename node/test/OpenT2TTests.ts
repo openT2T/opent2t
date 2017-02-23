@@ -9,6 +9,8 @@ import {
     OpenT2T,
     ThingSchema,
     IThingTranslator,
+    OpenT2TConstants,
+    OpenT2TError
 } from "../lib";
 
 const schemaA = "org.opent2t.test.schemas.a";
@@ -99,4 +101,17 @@ test("Thing Two method that throws + notification", async t => {
     });
     t.throws(OpenT2T.invokeMethodAsync(thingTwo, schemaB, "methodB1", []));
     t.true(methodCalled);
+});
+
+test("JSON.stringify() on OpenT2TError object returns a valid JSON object", async t=> {
+    let customMessage = "My custom error message";
+    let innerErrorMessage = "My Inner Error is a TypeError";
+    let innerError = new TypeError(innerErrorMessage);
+    let error = new OpenT2TError(400, customMessage, innerError);
+    let jsonObjectString = JSON.stringify(error);
+    console.log(jsonObjectString);
+    t.true(jsonObjectString.search(customMessage) >= 0);
+    t.true(jsonObjectString.search(innerErrorMessage) >= 0);
+    t.true(jsonObjectString.search("innerErrorStack") >= 0);
+    t.true(jsonObjectString.search(innerError.name) >= 0);
 });
