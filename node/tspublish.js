@@ -17,11 +17,18 @@ function prepublish() {
     if (fs.existsSync("build/lib")) {
         shell.cp("-R", "build/lib/*", ".");
     }
+    
+    // Explicitly copy readme.md from root to this current folder
+    // so the npm publish can pick this up and include it in the package.
+    shell.cp("-f", "../README.md", ".");
 }
 
 function postpublish() {
     shell.find("-R", "build/lib/*").forEach(function(file) {
         file = file.replace("build/lib/", "");
         shell.rm("-rf", file);
+    });
+    shell.find("README.md").forEach(function(file) {
+        shell.rm("-f", file);
     });
 }
