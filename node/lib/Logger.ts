@@ -4,25 +4,52 @@ import {LoggerInstance} from "winston";
 import * as winston from "winston";
 
 // const uuid = require('uuid');
+const timeStamp: string = "timestamp";
 
 export class Logger implements ILogger {
+
     // private transactionID = uuid.v4();
     private static flag: boolean = true;
+    private globalLogLevel: string = "debug";
     private logger: LoggerInstance;
+    private transportList: Array<any> = []; 
 
-    constructor(logger?: LoggerInstance) {
+    constructor(logLevel?: string, filename?: string, logger?: LoggerInstance) {
         this.logger = logger || winston;
 
-        // If you want to turn off console logging 
-        this.logger.remove(winston.transports.Console);
-        this.logger.add(winston.transports.Console, { colorize: true });
+        // TODO: Gate loglevel strings to allowed/supported values only.
+        if (logLevel) {
+            this.globalLogLevel = logLevel;
+        }
 
-        if (Logger.flag === true) {
-            this.logger.add(winston.transports.File, {
-                filename: "testfile.log",
+        let consoleTransport = new winston.transports.Console({
+            colorize: true,
+            level: this.globalLogLevel,
+        });
+
+        this.logger.configure({
+            transports: [
+                consoleTransport,
+            ],
+        });
+
+        this.transportList.push(consoleTransport);
+        
+        if (Logger.flag === true && filename ) {
+            let fileTransport = new winston.transports.File({
+                filename: filename,
                 handleExceptions: true,
-                level: "silly",
+                level: this.globalLogLevel,
             });
+            
+            this.logger.configure({
+                transports: [
+                    consoleTransport, 
+                    fileTransport
+                ]
+            });
+
+            this.transportList.push(fileTransport);
             Logger.flag = false;
         }
     }
@@ -47,11 +74,10 @@ export class Logger implements ILogger {
         this.logger.debug(msg, logObject);
     }
 
-    public silly(msg: string, logObject?): void {
-        this.logger.silly(msg, logObject);
+    public getConfiguredTransports(): Array<any> {
+        return this.transportList;
     }
 
-    
     public normalizeWith(normalizer: (logObject) => any): ILogger {
         this.normalize = normalizer;
         return this;
@@ -64,7 +90,7 @@ export class Logger implements ILogger {
 
         let cLogObject = Utilities.cloneObject(logObject);
         // cLogObject["transactionID"] = this.transactionID;
-        cLogObject["timestamp"] = Date.now();
+        cLogObject[timeStamp] = Date.now();
         return cLogObject;
     };
 }

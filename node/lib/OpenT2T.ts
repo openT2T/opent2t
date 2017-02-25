@@ -1,13 +1,13 @@
 
 import { IThingTranslator } from "./IThingTranslator";
+import { Logger } from "./Logger";
 import { ThingSchema } from "./ThingSchema";
 import { EventEmitter } from "events";
-import { Logger } from "./Logger";
 
 /**
  * Provides reflection-style access to thing properties and methods via translators.
  */
-export class OpenT2T {   
+export class OpenT2T {
     /**
      * Loads a schema from a module. This is just a convenience wrapper
      * around require(). Throws if the module could not be loaded.

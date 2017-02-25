@@ -2,6 +2,7 @@
 // using AVA test runner from https://github.com/avajs/ava
 
 import * as path from "path";
+import * as fs from "mz/fs";
 import test from "ava";
 import { TestContext } from "ava";
 
@@ -10,13 +11,15 @@ import {
     ThingSchema,
     IThingTranslator,
     OpenT2TConstants,
-    OpenT2TError
+    OpenT2TError,
+    Logger
 } from "../lib";
 
 const schemaA = "org.opent2t.test.schemas.a";
 const schemaB = "org.opent2t.test.schemas.b";
 const translatorOne = "org.opent2t.test.translators.one/js/thingTranslator";
 const translatorTwo = "org.opent2t.test.translators.two/js/thingTranslator";
+const  testLogFileName = "myloggertest.log";
 
 // Adjust for a path that is relative to the /test directory.
 function testPath(modulePath: string): any {
@@ -103,15 +106,40 @@ test("Thing Two method that throws + notification", async t => {
     t.true(methodCalled);
 });
 
-test("JSON.stringify() on OpenT2TError object returns a valid JSON object", async t=> {
+test("JSON.stringify() on OpenT2TError object returns a valid JSON object", async t => {
     let customMessage = "My custom error message";
     let innerErrorMessage = "My Inner Error is a TypeError";
     let innerError = new TypeError(innerErrorMessage);
     let error = new OpenT2TError(400, customMessage, innerError);
     let jsonObjectString = JSON.stringify(error);
-    console.log(jsonObjectString);
     t.true(jsonObjectString.search(customMessage) >= 0);
     t.true(jsonObjectString.search(innerErrorMessage) >= 0);
     t.true(jsonObjectString.search("innerErrorStack") >= 0);
     t.true(jsonObjectString.search(innerError.name) >= 0);
+});
+
+test("Logger with default parameters can be instantiated", async t => {
+    let logger = new Logger();
+    logger.info("Writing default level to default console.");
+    logger.debug("writing debug level to default console.");
+});
+
+test("Logger with default parameters can be instantiated multiple times", async t => {
+    let logger = new Logger();
+    logger.info("Writing default level to default console.");
+    logger.debug("writing debug level to default console.");
+    let logger2 = new Logger();
+    logger.info("2nd Logger - Writing default level to default console");
+});
+
+test("Logger can be instantiated with custom file parameter", async t => {
+    let logger = new Logger(undefined, testLogFileName) ;
+    logger.info("Writing default level to default console + file.");
+    logger.warn("writing warn level to default console + file.");
+    t.is(logger.getConfiguredTransports().length, 2);
+});
+
+test.after("Deleting created log file", async t => {
+    let fullPathName = path.join(__dirname, testLogFileName);
+    return fs.unlinkSync(fullPathName);
 });
