@@ -6,7 +6,6 @@ export namespace Utilities {
 
         let target: any;
         let tmpValue: any;
-        let i = 0;
         let key: string;
         let checkType: (anyVar: any) => boolean = function (value) {
             return value === undefined ||
@@ -22,7 +21,7 @@ export namespace Utilities {
 
         if (source.constructor === Array) {
             target = [];
-            for (i; i < source.length; i++) {
+            for (let i = 0; i < source.length; i++) {
                 tmpValue = source[i];
                 if (checkType(tmpValue)) {
                     target.push(tmpValue);

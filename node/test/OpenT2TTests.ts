@@ -124,6 +124,14 @@ test("Logger with default parameters can be instantiated", async t => {
     logger.debug("writing debug level to default console.");
 });
 
+test("Logger with default parameters can log a non-primitive type", async t => {
+    let logger = new Logger();
+    let myArray: Array<any> = ["firstObject", "secondObject", ["nestedObj1", "nestedObj2"]];
+    logger.info("Writing default level to default console.");
+    logger.debug("writing debug level to default console.");
+    logger.warn("Writing array object to default console", myArray);
+});
+
 test("Logger with default parameters can be instantiated multiple times", async t => {
     let logger = new Logger();
     logger.info("Writing default level to default console.");

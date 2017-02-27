@@ -13,7 +13,7 @@ export class Logger implements ILogger {
     private transportList: Array<any> = [];
 
     constructor(logLevel?: string, filename?: string, logger?: LoggerInstance) {
-        this.logger = logger || winston.default;
+        this.logger = logger || <any> winston;
 
         // TODO: Gate loglevel strings to allowed/supported values only.
         if (logLevel) {
