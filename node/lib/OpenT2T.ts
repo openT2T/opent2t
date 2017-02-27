@@ -8,6 +8,8 @@ import { EventEmitter } from "events";
  * Provides reflection-style access to thing properties and methods via translators.
  */
 export class OpenT2T {
+    public static consoleLogger: Logger = new Logger();
+
     /**
      * Loads a schema from a module. This is just a convenience wrapper
      * around require(). Throws if the module could not be loaded.
@@ -40,8 +42,7 @@ export class OpenT2T {
         let schemaModuleName: string = (arguments.length > 1 ?
                 arguments[0] + "/" + arguments[1] : arguments[0]);
 
-        let logger = new Logger();
-        logger.info("schemaModuleName: ", schemaModuleName);
+        OpenT2T.consoleLogger.verbose(`Calling getSchemaAsync for ${schemaModuleName}`);
 
         let thingSchema: ThingSchema;
         let schemaExport: any = require(schemaModuleName);
@@ -91,8 +92,7 @@ export class OpenT2T {
                 arguments[0] + "/" + arguments[1] : arguments[0]);
         let properties: any = (arguments.length > 2 ? arguments[2] : arguments[1]);
 
-        let logger = new Logger();
-        logger.info(`Creating translator: ${translatorModuleName}`);
+        OpenT2T.consoleLogger.verbose(`Creating translator for module name: ${translatorModuleName}`);
 
         return new Promise<IThingTranslator>((resolve, reject) => {
             let translator: IThingTranslator;
@@ -122,6 +122,8 @@ export class OpenT2T {
             translator: IThingTranslator,
             schemaName: string | ThingSchema,
             propertyName: string): Promise<any> {
+        OpenT2T.consoleLogger.verbose(
+            `getPropertyAsync for : '${propertyName}' for translator schema: ${schemaName}`);
         let translatorForSchema = OpenT2T.getTranslatorForSchema(translator, schemaName);
         OpenT2T.validateMemberName(propertyName);
         let memberName = OpenT2T.uncapitalize(propertyName);
@@ -171,6 +173,8 @@ export class OpenT2T {
             schemaName: string | ThingSchema,
             propertyName: string,
             value: any): Promise<void> {
+        OpenT2T.consoleLogger.verbose(
+            `setPropertyAsync for : '${propertyName}' for translator schema: ${schemaName}`);
         let translatorForSchema = OpenT2T.getTranslatorForSchema(translator, schemaName);
         OpenT2T.validateMemberName(propertyName);
 
@@ -220,6 +224,8 @@ export class OpenT2T {
             schemaName: string | ThingSchema,
             propertyName: string,
             callback: (value: any) => void): void {
+        OpenT2T.consoleLogger.verbose(
+            `addPropertyListener for : '${propertyName}' for translator schema: ${schemaName}`);
         let translatorForSchema = OpenT2T.getTranslatorForSchema(translator, schemaName);
         OpenT2T.validateMemberName(propertyName);
 
@@ -251,6 +257,8 @@ export class OpenT2T {
             schemaName: string | ThingSchema,
             propertyName: string,
             callback: (value: any) => void): void {
+        OpenT2T.consoleLogger.info(
+            `removePropertyListener for : '${propertyName}' for translator schema: ${schemaName}`);
         let translatorForSchema = OpenT2T.getTranslatorForSchema(translator, schemaName);
         OpenT2T.validateMemberName(propertyName);
 
@@ -286,6 +294,8 @@ export class OpenT2T {
             schemaName: string | ThingSchema,
             methodName: string,
             args: any[]): Promise<any> {
+        OpenT2T.consoleLogger.verbose(
+            `invokeMethodAsync '${methodName}' (args: ${args}) for translator schema: ${schemaName}`);
         let translatorForSchema = OpenT2T.getTranslatorForSchema(translator, schemaName);
         OpenT2T.validateMemberName(methodName);
         if (!Array.isArray(args)) {
