@@ -8,7 +8,8 @@
         "noImplicitAny": true,
         "noImplicitReturns": true,
         "strictNullChecks": true,
-        "sourceMap": true
+        "sourceMap": true,
+        "baseUrl": "." // Was getting compilation errors before adding this
     },
     "exclude": [
         "build",
