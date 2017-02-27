@@ -92,8 +92,7 @@ export class OpenT2T {
         let properties: any = (arguments.length > 2 ? arguments[2] : arguments[1]);
 
         let logger = new Logger();
-        logger.verbose("Logging from Opent2t library");
-        logger.info("translatorModuleName: ", translatorModuleName);
+        logger.info(`Creating translator: ${translatorModuleName}`);
 
         return new Promise<IThingTranslator>((resolve, reject) => {
             let translator: IThingTranslator;

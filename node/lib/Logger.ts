@@ -3,12 +3,10 @@ import {Utilities} from "./LoggerUtilities";
 import {LoggerInstance} from "winston";
 import * as winston from "winston";
 
-// const uuid = require('uuid');
 const timeStamp: string = "timestamp";
 
 export class Logger implements ILogger {
 
-    // private transactionID = uuid.v4();
     private static flag: boolean = true;
     private globalLogLevel: string = "debug";
     private logger: LoggerInstance;
