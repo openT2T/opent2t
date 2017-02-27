@@ -1,5 +1,5 @@
 export namespace Utilities {
-    export function cloneObject(source) {
+    export function cloneObject(source: any) {
         if (source === null) {
             return null;
         }
@@ -8,7 +8,7 @@ export namespace Utilities {
         let tmpValue: any;
         let i = 0;
         let key: string;
-        let checkType: (anyVar) => boolean = function (value) {
+        let checkType: (anyVar: any) => boolean = function (value) {
             return value === undefined ||
                    value === null ||
                    typeof value === "string" ||

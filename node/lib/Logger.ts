@@ -12,10 +12,10 @@ export class Logger implements ILogger {
     private static flag: boolean = true;
     private globalLogLevel: string = "debug";
     private logger: LoggerInstance;
-    private transportList: Array<any> = []; 
+    private transportList: Array<any> = [];
 
     constructor(logLevel?: string, filename?: string, logger?: LoggerInstance) {
-        this.logger = logger || winston;
+        this.logger = logger || winston.default;
 
         // TODO: Gate loglevel strings to allowed/supported values only.
         if (logLevel) {
@@ -34,19 +34,19 @@ export class Logger implements ILogger {
         });
 
         this.transportList.push(consoleTransport);
-        
+
         if (Logger.flag === true && filename ) {
             let fileTransport = new winston.transports.File({
                 filename: filename,
                 handleExceptions: true,
                 level: this.globalLogLevel,
             });
-            
+
             this.logger.configure({
                 transports: [
-                    consoleTransport, 
-                    fileTransport
-                ]
+                    consoleTransport,
+                    fileTransport,
+                ],
             });
 
             this.transportList.push(fileTransport);
@@ -54,23 +54,23 @@ export class Logger implements ILogger {
         }
     }
 
-   public error(msg: string, logObject?): void {
+   public error(msg: string, logObject?: any): void {
         this.logger.error(msg, logObject);
     }
 
-    public warn(msg: string, logObject?): void {
+    public warn(msg: string, logObject?: any): void {
         this.logger.warn(msg, logObject);
     }
 
-    public info(msg: string, logObject?): void {
+    public info(msg: string, logObject?: any): void {
         this.logger.info(msg, logObject);
     }
 
-    public verbose(msg: string, logObject?): void {
+    public verbose(msg: string, logObject?: any): void {
         this.logger.verbose(msg, logObject);
     }
 
-    public debug(msg: string, logObject?): void {
+    public debug(msg: string, logObject?: any): void {
         this.logger.debug(msg, logObject);
     }
 
@@ -78,18 +78,17 @@ export class Logger implements ILogger {
         return this.transportList;
     }
 
-    public normalizeWith(normalizer: (logObject) => any): ILogger {
+    public normalizeWith(normalizer: (logObject: any) => any): ILogger {
         this.normalize = normalizer;
         return this;
     }
 
-    private normalize = (logObject) => {
+    private normalize = (logObject: any) => {
         if (logObject === null || logObject === undefined) {
             return;
         }
 
         let cLogObject = Utilities.cloneObject(logObject);
-        // cLogObject["transactionID"] = this.transactionID;
         cLogObject[timeStamp] = Date.now();
         return cLogObject;
     };

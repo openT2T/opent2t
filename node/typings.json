@@ -3,5 +3,8 @@
     "mz": "registry:dt/mz#0.0.0+20160217153523",
     "node": "registry:dt/node#6.0.0+20160709114037",
     "xml2js": "registry:dt/xml2js#0.0.0+20160317120654"
+  },
+  "dependencies": {
+    "winston": "registry:dt/winston#2.2.0+20170106144044"
   }
 }
