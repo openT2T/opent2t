@@ -87,7 +87,7 @@ class AllJoynSchemaWriter {
                         } else if (max === Math.pow(2, 64)) {
                             return "t"; // uint64
                         }
-                    } else if (min < 0) {
+                    } else if ((min) && (min < 0)) {
                         if (min === -Math.pow(2, 15) && max === Math.pow(2, 15) - 1) {
                             return "n"; // int16
                         } else if (min === -Math.pow(2, 31) && max === Math.pow(2, 31) - 1) {
