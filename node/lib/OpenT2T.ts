@@ -3,6 +3,8 @@ import { IThingTranslator } from "./IThingTranslator";
 import { Logger } from "./Logger";
 import { ThingSchema } from "./ThingSchema";
 import { EventEmitter } from "events";
+import { OpenT2TError } from "./OpenT2TError";
+import { OpenT2TConstants } from "./OpenT2TConstants";
 
 /**
  * Provides reflection-style access to thing properties and methods via translators.
@@ -96,6 +98,14 @@ export class OpenT2T {
 
         return new Promise<IThingTranslator>((resolve, reject) => {
             let translator: IThingTranslator;
+            
+            // Check for existance of the translator module
+            try {
+                require.resolve(translatorModuleName);
+            } catch (err) {
+                throw new OpenT2TError(404, `${OpenT2TConstants.MissingTranslator}: ${translatorModuleName}`);
+            }
+
             try {
                 let translatorClass: any = require(translatorModuleName);
                 translator = new translatorClass(properties);

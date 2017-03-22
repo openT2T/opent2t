@@ -26,6 +26,13 @@ function testPath(modulePath: string): any {
     return path.join(__dirname, "../../test", modulePath);
 }
 
+test("Missing translator module", async t => {
+    let missingTranslatorName = "this_translator_does_not_exist"
+    const error: Error = await t.throws(OpenT2T.createTranslatorAsync(missingTranslatorName, {}), OpenT2TError);
+    t.true(error.message.startsWith(OpenT2TConstants.MissingTranslator));
+    t.true(error.message.endsWith(missingTranslatorName));
+});
+
 test("Load schema A", async t => {
     let thingSchemaA: ThingSchema = await OpenT2T.getSchemaAsync(
             testPath("./" + schemaA + "/" + schemaA));
