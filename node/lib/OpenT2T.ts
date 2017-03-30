@@ -1,16 +1,17 @@
-
 import { IThingTranslator } from "./IThingTranslator";
 import { Logger } from "./Logger";
 import { ThingSchema } from "./ThingSchema";
 import { EventEmitter } from "events";
 import { OpenT2TError } from "./OpenT2TError";
 import { OpenT2TConstants } from "./OpenT2TConstants";
+import { Tracker } from "./Tracker";
 
 /**
  * Provides reflection-style access to thing properties and methods via translators.
  */
 export class OpenT2T {
     public static consoleLogger: Logger = new Logger();
+    public static tracker: Tracker = new Tracker();
 
     /**
      * Loads a schema from a module. This is just a convenience wrapper
@@ -35,16 +36,18 @@ export class OpenT2T {
      * @returns {Promise<ThingSchema>} The loaded thing schema.
      */
     public static getSchemaAsync(
-            packageName: string, schemaModuleName: string): Promise<ThingSchema>;
+        packageName: string, schemaModuleName: string): Promise<ThingSchema>;
 
     /**
      * Loads a schema from a module. (Overloaded method implementation.)
      */
     public static async getSchemaAsync(): Promise<ThingSchema> {
+        let startTime = Date.now();
         let schemaModuleName: string = (arguments.length > 1 ?
-                arguments[0] + "/" + arguments[1] : arguments[0]);
+            arguments[0] + "/" + arguments[1] : arguments[0]);
 
         OpenT2T.consoleLogger.verbose(`Calling getSchemaAsync for ${schemaModuleName}`);
+        let trackingData: any = { schemaName: schemaModuleName };
 
         let thingSchema: ThingSchema;
         let schemaExport: any = require(schemaModuleName);
@@ -55,6 +58,7 @@ export class OpenT2T {
             thingSchema = schemaExport;
         }
 
+        OpenT2T.tracker.event("OpenT2T Get Schema", Date.now() - startTime, trackingData);
         return thingSchema;
     }
 
@@ -68,7 +72,7 @@ export class OpenT2T {
      * @returns {Promise<IThingTranslator>} The loaded translator instance.
      */
     public static async createTranslatorAsync(
-            translatorModuleName: string, properties: any): Promise<IThingTranslator>;
+        translatorModuleName: string, properties: any): Promise<IThingTranslator>;
 
     /**
      * Loads a translator from a module. This is just a convenience wrapper
@@ -82,28 +86,32 @@ export class OpenT2T {
      * @returns {Promise<IThingTranslator>} The loaded translator instance.
      */
     public static async createTranslatorAsync(
-            packageName: string,
-            translatorModuleName: string,
-            properties: any): Promise<IThingTranslator>;
+        packageName: string,
+        translatorModuleName: string,
+        properties: any): Promise<IThingTranslator>;
 
     /**
      * Loads a translator from a module. (Overload method implementation.)
      */
     public static async createTranslatorAsync(): Promise<IThingTranslator> {
+        let startTime = Date.now();
         let translatorModuleName: string = (arguments.length > 2 ?
-                arguments[0] + "/" + arguments[1] : arguments[0]);
+            arguments[0] + "/" + arguments[1] : arguments[0]);
         let properties: any = (arguments.length > 2 ? arguments[2] : arguments[1]);
 
         OpenT2T.consoleLogger.verbose(`Creating translator for module name: ${translatorModuleName}`);
+        let trackingData: any = { translatorName: translatorModuleName };
 
         return new Promise<IThingTranslator>((resolve, reject) => {
             let translator: IThingTranslator;
-            
+
             // Check for existance of the translator module
             try {
                 require.resolve(translatorModuleName);
             } catch (err) {
-                throw new OpenT2TError(404, `${OpenT2TConstants.MissingTranslator}: ${translatorModuleName}`);
+                trackingData.statusCode = 404;
+                OpenT2T.throwError(new OpenT2TError(
+                    404, `${OpenT2TConstants.MissingTranslator}: ${translatorModuleName}`), trackingData);
             }
 
             try {
@@ -113,6 +121,8 @@ export class OpenT2T {
                 reject(err);
                 return;
             }
+
+            OpenT2T.tracker.event("CreateTranslator", Date.now() - startTime, trackingData);
             resolve(translator);
         });
     }
@@ -129,15 +139,18 @@ export class OpenT2T {
      *     by the thing schema
      */
     public static async getPropertyAsync(
-            translator: IThingTranslator,
-            schemaName: string | ThingSchema,
-            propertyName: string): Promise<any> {
+        translator: IThingTranslator,
+        schemaName: string | ThingSchema,
+        propertyName: string): Promise<any> {
+        let startTime = Date.now();
         OpenT2T.consoleLogger.verbose(
             `getPropertyAsync for : '${propertyName}' for translator schema: ${schemaName}`);
+        let trackingData: any = { propertyName, schemaName };
         let translatorForSchema = OpenT2T.getTranslatorForSchema(translator, schemaName);
         OpenT2T.validateMemberName(propertyName);
         let memberName = OpenT2T.uncapitalize(propertyName);
         let value: any = translatorForSchema[memberName];
+        let returnValue: any;
         if (typeof value === "undefined") {
             // Allow (but do not require) the getProperty method to have an "Async" suffix
             // and/or return a Promise instead of an immediate value.
@@ -157,14 +170,17 @@ export class OpenT2T {
         }
 
         if (typeof value === "undefined") {
-            throw new TypeError("Property '" + propertyName + "' getter " +
-                "for schema " + schemaName + " not implemented by translator.");
+            OpenT2T.throwError(new TypeError("Property '" + propertyName + "' getter " +
+                "for schema " + schemaName + " not implemented by translator."), trackingData);
         } else if (typeof value === "object" && typeof value.then === "function") {
             // The value object looks like a Promise. Await it to get the value asynchronously.
-            return await value;
+            returnValue = await value;
         } else {
-            return value;
+            returnValue = value;
         }
+
+        OpenT2T.tracker.event("GetProperty", Date.now() - startTime, trackingData);
+        return returnValue;
     }
 
     /**
@@ -179,12 +195,14 @@ export class OpenT2T {
      *     by the thing schema
      */
     public static async setPropertyAsync(
-            translator: IThingTranslator,
-            schemaName: string | ThingSchema,
-            propertyName: string,
-            value: any): Promise<void> {
+        translator: IThingTranslator,
+        schemaName: string | ThingSchema,
+        propertyName: string,
+        value: any): Promise<void> {
+        let startTime = Date.now();
         OpenT2T.consoleLogger.verbose(
             `setPropertyAsync for : '${propertyName}' for translator schema: ${schemaName}`);
+        let trackingData: any = { propertyName, schemaName, value };
         let translatorForSchema = OpenT2T.getTranslatorForSchema(translator, schemaName);
         OpenT2T.validateMemberName(propertyName);
 
@@ -202,8 +220,8 @@ export class OpenT2T {
                 memberName = memberName + "Async";
                 setPropertyMethod = translatorForSchema[memberName];
                 if (typeof setPropertyMethod !== "function") {
-                    throw new TypeError("Property '" + propertyName + "' setter " +
-                        "for schema " + schemaName + " not implemented by translator.");
+                    OpenT2T.throwError(new TypeError("Property '" + propertyName + "' setter " +
+                        "for schema " + schemaName + " not implemented by translator."), trackingData);
                 }
             }
         }
@@ -214,6 +232,8 @@ export class OpenT2T {
             // The result object looks like a Promise. Await it to complete async the operation.
             await result;
         }
+
+        OpenT2T.tracker.event("SetProperty", Date.now() - startTime, trackingData);
     }
 
     /**
@@ -230,12 +250,14 @@ export class OpenT2T {
      *     specified by the thing schema
      */
     public static addPropertyListener(
-            translator: IThingTranslator,
-            schemaName: string | ThingSchema,
-            propertyName: string,
-            callback: (value: any) => void): void {
+        translator: IThingTranslator,
+        schemaName: string | ThingSchema,
+        propertyName: string,
+        callback: (value: any) => void): void {
+        let startTime = Date.now();
         OpenT2T.consoleLogger.verbose(
             `addPropertyListener for : '${propertyName}' for translator schema: ${schemaName}`);
+        let trackingData: any = { propertyName, schemaName };
         let translatorForSchema = OpenT2T.getTranslatorForSchema(translator, schemaName);
         OpenT2T.validateMemberName(propertyName);
 
@@ -244,12 +266,14 @@ export class OpenT2T {
         let addListenerMethod: any = (<EventEmitter> translatorForSchema).on;
 
         if (typeof addListenerMethod !== "function") {
-            throw new TypeError("Property '" + propertyName + "' notifier " +
-                "for schema " + schemaName + " not implemented by translator.");
+            OpenT2T.throwError(new TypeError("Property '" + propertyName + "' notifier " +
+                "for schema " + schemaName + " not implemented by translator."), trackingData);
         } else {
             // Invoke using call() to set `this` to translatorForSchema.
             addListenerMethod.call(translatorForSchema, propertyName, callback);
         }
+
+        OpenT2T.tracker.event("AddPropertyListener", Date.now() - startTime, trackingData);
     }
 
     /**
@@ -263,12 +287,14 @@ export class OpenT2T {
      *     added as a listener to the same property on the same device
      */
     public static removePropertyListener(
-            translator: IThingTranslator,
-            schemaName: string | ThingSchema,
-            propertyName: string,
-            callback: (value: any) => void): void {
+        translator: IThingTranslator,
+        schemaName: string | ThingSchema,
+        propertyName: string,
+        callback: (value: any) => void): void {
+        let startTime = Date.now();
         OpenT2T.consoleLogger.info(
             `removePropertyListener for : '${propertyName}' for translator schema: ${schemaName}`);
+        let trackingData: any = { propertyName, schemaName };
         let translatorForSchema = OpenT2T.getTranslatorForSchema(translator, schemaName);
         OpenT2T.validateMemberName(propertyName);
 
@@ -277,12 +303,14 @@ export class OpenT2T {
         let removeListenerMethod: any = (<EventEmitter> translatorForSchema).removeListener;
 
         if (typeof removeListenerMethod !== "function") {
-            throw new TypeError("Property '" + propertyName + "' notifier removal " +
-                "for schema " + schemaName + " not implemented by translator.");
+            OpenT2T.throwError(new TypeError("Property '" + propertyName + "' notifier removal " +
+                "for schema " + schemaName + " not implemented by translator."), trackingData);
         } else {
             // Invoke using call() to set `this` to translatorForSchema.
             removeListenerMethod.call(translatorForSchema, propertyName, callback);
         }
+
+        OpenT2T.tracker.event("RemovePropertyListener", Date.now() - startTime, trackingData);
     }
 
     /**
@@ -300,16 +328,21 @@ export class OpenT2T {
      *     JSON schema for the method return value as specified by the thing schema
      */
     public static async invokeMethodAsync(
-            translator: IThingTranslator,
-            schemaName: string | ThingSchema,
-            methodName: string,
-            args: any[]): Promise<any> {
+        translator: IThingTranslator,
+        schemaName: string | ThingSchema,
+        methodName: string,
+        args: any[]): Promise<any> {
+        let startTime = Date.now();
         OpenT2T.consoleLogger.verbose(
             `invokeMethodAsync '${methodName}' (args: ${args}) for translator schema: ${schemaName}`);
+        let trackingData: any = { methodName, schemaName };
+        if (methodName !== "get") {
+            trackingData.args = JSON.stringify(args);
+        }
         let translatorForSchema = OpenT2T.getTranslatorForSchema(translator, schemaName);
         OpenT2T.validateMemberName(methodName);
         if (!Array.isArray(args)) {
-            throw new TypeError("Args argument must be an array.");
+            OpenT2T.throwError(new TypeError("Args argument must be an array."), trackingData);
         }
 
         // Allow (but do not require) the method to have an "Async" suffix
@@ -318,20 +351,24 @@ export class OpenT2T {
         if (typeof method !== "function") {
             method = translatorForSchema[methodName + "Async"];
             if (typeof method !== "function") {
-                throw new TypeError("Method '" + methodName + "' " +
-                    "for schema " + schemaName + " not implemented by translator.");
+                OpenT2T.throwError(new TypeError("Method '" + methodName + "' " +
+                    "for schema " + schemaName + " not implemented by translator."), trackingData);
             }
         }
 
         // Invoke using apply() to set `this` to translatorForSchema and pass the
         // arguments as an array.
         let result = method.apply(translatorForSchema, args);
+        let returnValue: any;
         if (typeof result === "object" && typeof result.then === "function") {
             // The result object looks like a Promise. Await it to get the result asynchronously.
-            return await result;
+            returnValue = await result;
         } else {
-            return result;
+            returnValue = result;
         }
+
+        OpenT2T.tracker.event("InvokeMethod", Date.now() - startTime, trackingData);
+        return returnValue;
     }
 
     /**
@@ -339,7 +376,7 @@ export class OpenT2T {
      * that implements properties and methods for the requested schema.
      */
     private static getTranslatorForSchema(
-            translator: IThingTranslator, schemaName: string | ThingSchema): {[key: string]: any} {
+        translator: IThingTranslator, schemaName: string | ThingSchema): { [key: string]: any } {
         if (typeof translator !== "object") {
             throw new TypeError("Translator argument must be an object.");
         }
@@ -347,7 +384,7 @@ export class OpenT2T {
         if (typeof translator.resolveSchema !== "function") {
             // The device doesn't implement a "resolveSchema" method, so it is assumed to implement
             // all schema properties and methods directly.
-            return <{[key: string]: any}> translator;
+            return <{ [key: string]: any }> translator;
         }
 
         if (typeof schemaName !== "string") {
@@ -359,7 +396,7 @@ export class OpenT2T {
             throw new TypeError("Schema not implemented by translator: " + schemaName);
         }
 
-        return <{[key: string]: any}> translatorForSchema;
+        return <{ [key: string]: any }> translatorForSchema;
     }
 
     private static validateMemberName(memberName: string) {
@@ -385,5 +422,10 @@ export class OpenT2T {
         }
 
         return propertyName;
+    }
+
+    private static throwError(error: Error, data?: { [key: string]: any; }) {
+        OpenT2T.tracker.exception(error, data);
+        throw error;
     }
 }
