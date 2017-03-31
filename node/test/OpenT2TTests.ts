@@ -1,18 +1,17 @@
 // Tests for the OpenT2T class
 // using AVA test runner from https://github.com/avajs/ava
 
-import * as path from "path";
-import * as fs from "mz/fs";
 import test from "ava";
-import { TestContext } from "ava";
+import * as fs from "mz/fs";
+import * as path from "path";
 
 import {
-    OpenT2T,
-    ThingSchema,
     IThingTranslator,
+    Logger,
+    OpenT2T,
     OpenT2TConstants,
     OpenT2TError,
-    Logger
+    ThingSchema,
 } from "../lib";
 
 const schemaA = "org.opent2t.test.schemas.a";
@@ -21,22 +20,25 @@ const translatorOne = "org.opent2t.test.translators.one/js/thingTranslator";
 const translatorTwo = "org.opent2t.test.translators.two/js/thingTranslator";
 const  testLogFileName = "myloggertest.log";
 
+let opent2t = new OpenT2T(new Logger());
+
 // Adjust for a path that is relative to the /test directory.
 function testPath(modulePath: string): any {
     return path.join(__dirname, "../../test", modulePath);
 }
 
 test("Missing translator module", async t => {
-    let missingTranslatorName = "this_translator_does_not_exist"
-    const error: Error = await t.throws(OpenT2T.createTranslatorAsync(missingTranslatorName, {}), OpenT2TError);
+    let missingTranslatorName = "this_translator_does_not_exist";
+    const error: Error = await t.throws(opent2t.createTranslatorAsync(missingTranslatorName, {}), OpenT2TError);
     t.true(error.message.startsWith(OpenT2TConstants.MissingTranslator));
     t.true(error.message.endsWith(missingTranslatorName));
 });
 
 test("Load schema A", async t => {
-    let thingSchemaA: ThingSchema = await OpenT2T.getSchemaAsync(
+    let thingSchemaA: ThingSchema = await opent2t.getSchemaAsync(
             testPath("./" + schemaA + "/" + schemaA));
-    t.is(typeof thingSchemaA, "object") && t.truthy(thingSchemaA);
+    t.is(typeof thingSchemaA, "object");
+    t.truthy(thingSchemaA);
     t.is(thingSchemaA.name, schemaA);
     t.true(Array.isArray(thingSchemaA.properties) && thingSchemaA.properties.length > 0);
     t.true(Array.isArray(thingSchemaA.methods) && thingSchemaA.methods.length > 0);
@@ -45,9 +47,10 @@ test("Load schema A", async t => {
 });
 
 test("Load schema B", async t => {
-    let thingSchemaB: ThingSchema = await OpenT2T.getSchemaAsync(
+    let thingSchemaB: ThingSchema = await opent2t.getSchemaAsync(
             testPath("./" + schemaB + "/" + schemaB));
-    t.is(typeof thingSchemaB, "object") && t.truthy(thingSchemaB);
+    t.is(typeof thingSchemaB, "object");
+    t.truthy(thingSchemaB);
     t.is(thingSchemaB.name, schemaB);
     t.true(Array.isArray(thingSchemaB.properties) && thingSchemaB.properties.length > 0);
     t.true(Array.isArray(thingSchemaB.methods) && thingSchemaB.methods.length > 0);
@@ -56,60 +59,66 @@ test("Load schema B", async t => {
 });
 
 test("Thing One property get", async t => {
-    let thingOne: IThingTranslator = await OpenT2T.createTranslatorAsync(
+    let thingOne: IThingTranslator = await opent2t.createTranslatorAsync(
             testPath("./" + schemaA + "/" + translatorOne), {});
-    t.is(typeof thingOne, "object") && t.truthy(thingOne);
-    let propA1Value = await OpenT2T.getPropertyAsync(thingOne, schemaA, "propA1");
+    t.is(typeof thingOne, "object");
+    t.truthy(thingOne);
+    let propA1Value = await opent2t.getPropertyAsync(thingOne, schemaA, "propA1");
     t.is(propA1Value, 123);
 });
 
 test("Thing One property set", async t => {
-    let thingOne: IThingTranslator = await OpenT2T.createTranslatorAsync(
+    let thingOne: IThingTranslator = await opent2t.createTranslatorAsync(
             testPath("./" + schemaA + "/" + translatorOne), {});
-    t.is(typeof thingOne, "object") && t.truthy(thingOne);
-    await OpenT2T.setPropertyAsync(thingOne, schemaA, "propA2", "test2");
-    let propA2Value = await OpenT2T.getPropertyAsync(thingOne, schemaA, "propA2");
+    t.is(typeof thingOne, "object");
+    t.truthy(thingOne);
+    await opent2t.setPropertyAsync(thingOne, schemaA, "propA2", "test2");
+    let propA2Value = await opent2t.getPropertyAsync(thingOne, schemaA, "propA2");
     t.is(propA2Value, "test2");
 });
 
 test("Thing One method call + notification", async t => {
-    let thingOne: IThingTranslator = await OpenT2T.createTranslatorAsync(
+    let thingOne: IThingTranslator = await opent2t.createTranslatorAsync(
             testPath("./" + schemaA + "/" + translatorOne), {});
-    t.is(typeof thingOne, "object") && t.truthy(thingOne);
+    t.is(typeof thingOne, "object");
+    t.truthy(thingOne);
     let methodCalled: boolean = false;
-    OpenT2T.addPropertyListener(thingOne, schemaA, "signalA", (message: string) => {
+    opent2t.addPropertyListener(thingOne, schemaA, "signalA", (message: string) => {
         methodCalled = true;
     });
-    await OpenT2T.invokeMethodAsync(thingOne, schemaA, "methodA1", []);
+    await opent2t.invokeMethodAsync(thingOne, schemaA, "methodA1", []);
     t.true(methodCalled);
 });
 
 test("Thing Two property get (schema A)", async t => {
-    let thingTwo: IThingTranslator = await OpenT2T.createTranslatorAsync(
+    let thingTwo: IThingTranslator = await opent2t.createTranslatorAsync(
             testPath("./" + schemaB + "/" + translatorTwo), {});
-    t.is(typeof thingTwo, "object") && t.truthy(thingTwo);
-    let propA1Value = await OpenT2T.getPropertyAsync(thingTwo, schemaA, "propA1");
+    t.is(typeof thingTwo, "object");
+    t.truthy(thingTwo);
+    let propA1Value = await opent2t.getPropertyAsync(thingTwo, schemaA, "propA1");
     t.is(propA1Value, 123);
 });
 
 test("Thing Two property get (schema B)", async t => {
-    let thingTwo: IThingTranslator = await OpenT2T.createTranslatorAsync(
+    let thingTwo: IThingTranslator = await opent2t.createTranslatorAsync(
             testPath("./" + schemaB + "/" + translatorTwo), {});
-    t.is(typeof thingTwo, "object") && t.truthy(thingTwo);
-    let propA1Value = await OpenT2T.getPropertyAsync(thingTwo, schemaB, "propA1");
+    t.is(typeof thingTwo, "object");
+    t.truthy(thingTwo);
+    let propA1Value = await opent2t.getPropertyAsync(thingTwo, schemaB, "propA1");
     t.is(propA1Value, 999);
 });
 
 test("Thing Two method that throws + notification", async t => {
-    let thingTwo: IThingTranslator = await OpenT2T.createTranslatorAsync(
+    let thingTwo: IThingTranslator = await opent2t.createTranslatorAsync(
             testPath("./" + schemaB + "/" + translatorTwo), {});
-    t.is(typeof thingTwo, "object") && t.truthy(thingTwo);
+    t.is(typeof thingTwo, "object");
+    t.truthy(thingTwo);
     let methodCalled: boolean = false;
-    OpenT2T.addPropertyListener(
+    opent2t.addPropertyListener(
             thingTwo, schemaB, "signalB", (message: string) => {
         methodCalled = true;
     });
-    t.throws(OpenT2T.invokeMethodAsync(thingTwo, schemaB, "methodB1", []));
+    t.throws(opent2t.invokeMethodAsync(thingTwo, schemaB, "methodB1", []));
     t.true(methodCalled);
 });
 
@@ -143,7 +152,11 @@ test("Logger with default parameters can be instantiated multiple times", async 
     let logger = new Logger();
     logger.info("Writing default level to default console.");
     logger.debug("writing debug level to default console.");
+
+    /* tslint:disable:no-unused-variable */
     let logger2 = new Logger();
+    /* tslint:enable:no-unused-variable */
+
     logger.info("2nd Logger - Writing default level to default console");
 });
 

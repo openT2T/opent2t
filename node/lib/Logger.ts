@@ -35,7 +35,7 @@ export class Logger implements ILogger {
 
         if (Logger.flag === true && filename ) {
             let fileTransport = new winston.transports.File({
-                filename: filename,
+                filename,
                 handleExceptions: true,
                 level: this.globalLogLevel,
             });
