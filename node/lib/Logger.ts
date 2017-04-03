@@ -70,11 +70,11 @@ export class Logger {
     }
 
     public event(name: string, duration: number, data?: { [key: string]: any; }): void {
-        this.callAllTransports(t => t.event(name, duration, data));
+        this.callAllTrackingTransports(t => t.event(name, duration, data));
     }
 
     public trace(message: string, traceLevel: TraceLevel, data?: { [key: string]: any; }): void {
-        this.callAllTransports(t => t.trace(message, traceLevel, data));
+        this.callAllTrackingTransports(t => t.trace(message, traceLevel, data));
     }
 
     public metric(
@@ -84,14 +84,14 @@ export class Logger {
         min?: number,
         max?: number,
         data?: { [key: string]: any; }): void {
-        this.callAllTransports(t => t.metric(name, value, count, min, max, data));
+        this.callAllTrackingTransports(t => t.metric(name, value, count, min, max, data));
     }
 
     public exception(exception: Error, data?: { [key: string]: any; }): void {
-        this.callAllTransports(t => t.exception(exception, data));
+        this.callAllTrackingTransports(t => t.exception(exception, data));
     }
 
-    public getConfiguredTransports(): Array<string> {
+    public getConfiguredLoggerTransports(): Array<string> {
         return this.logger._names;
     }
 
@@ -100,7 +100,7 @@ export class Logger {
         return this;
     }
 
-    private callAllTransports(action: (tracker: ITrackerTransport) => void): void {
+    private callAllTrackingTransports(action: (tracker: ITrackerTransport) => void): void {
         this.transportList.forEach((tracker: ITrackerTransport) => {
             action(tracker);
         });

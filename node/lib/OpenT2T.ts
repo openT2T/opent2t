@@ -148,7 +148,7 @@ export class OpenT2T {
         let startTime = Date.now();
         this.logger.verbose(
             `getPropertyAsync for : '${propertyName}' for translator schema: ${schemaName}`);
-        let trackingData: any = { propertyName, schemaName };
+        let trackingData: any = { propertyName, schemaName, translatorName: (<any> translator).name };
         let translatorForSchema = this.getTranslatorForSchema(translator, schemaName);
         this.validateMemberName(propertyName);
         let memberName = this.uncapitalize(propertyName);
@@ -205,7 +205,7 @@ export class OpenT2T {
         let startTime = Date.now();
         this.logger.verbose(
             `setPropertyAsync for : '${propertyName}' for translator schema: ${schemaName}`);
-        let trackingData: any = { propertyName, schemaName, value };
+        let trackingData: any = { propertyName, schemaName, value, translatorName: (<any> translator).name };
         let translatorForSchema = this.getTranslatorForSchema(translator, schemaName);
         this.validateMemberName(propertyName);
 
@@ -260,7 +260,7 @@ export class OpenT2T {
         let startTime = Date.now();
         this.logger.verbose(
             `addPropertyListener for : '${propertyName}' for translator schema: ${schemaName}`);
-        let trackingData: any = { propertyName, schemaName };
+        let trackingData: any = { propertyName, schemaName, translatorName: (<any> translator).name };
         let translatorForSchema = this.getTranslatorForSchema(translator, schemaName);
         this.validateMemberName(propertyName);
 
@@ -297,7 +297,7 @@ export class OpenT2T {
         let startTime = Date.now();
         this.logger.info(
             `removePropertyListener for : '${propertyName}' for translator schema: ${schemaName}`);
-        let trackingData: any = { propertyName, schemaName };
+        let trackingData: any = { propertyName, schemaName, translatorName: (<any> translator).name };
         let translatorForSchema = this.getTranslatorForSchema(translator, schemaName);
         this.validateMemberName(propertyName);
 
@@ -338,7 +338,7 @@ export class OpenT2T {
         let startTime = Date.now();
         this.logger.verbose(
             `invokeMethodAsync '${methodName}' (args: ${args}) for translator schema: ${schemaName}`);
-        let trackingData: any = { methodName, schemaName };
+        let trackingData: any = { methodName, schemaName, translatorName: (<any> translator).name };
         if (methodName !== "get") {
             trackingData.args = JSON.stringify(args);
         }

@@ -166,7 +166,7 @@ test("Logger can be instantiated with custom file parameter", async t => {
     logger.addLoggerTransport(winston.transports.File, { filename: testLogFileName });
     logger.info("Writing default level to default console + file.");
     logger.warn("writing warn level to default console + file.");
-    t.is(logger.getConfiguredTransports().length, 2);
+    t.is(logger.getConfiguredLoggerTransports().length, 2);
 });
 
 test.after("Deleting created log file", async t => {
