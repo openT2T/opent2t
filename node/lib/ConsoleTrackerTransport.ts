@@ -7,8 +7,6 @@ import { TraceLevel } from "./Logger";
  */
 export class ConsoleTrackerTransport implements ITrackerTransport {
 
-    public name: string = "Console Tracker";
-
     public event(name: string, duration: number, data?: { [key: string]: any; }): void {
         console.log(`Event: ${name}, Duration: ${duration}, Data: ${JSON.stringify(data)}`);
     }

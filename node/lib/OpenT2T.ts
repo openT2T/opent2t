@@ -61,7 +61,7 @@ export class OpenT2T {
             thingSchema = schemaExport;
         }
 
-        this.logger.event("OpenT2T Get Schema", Date.now() - startTime, trackingData);
+        this.logger.event("GetSchema", Date.now() - startTime, trackingData);
         return thingSchema;
     }
 

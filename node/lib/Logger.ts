@@ -17,7 +17,7 @@ export class Logger {
     private logger: any = new winston.Logger();
     private transportList: Array<ITrackerTransport> = [];
 
-    constructor(logLevel: string = "info", enableConsole: boolean = true) {
+    constructor(logLevel: string = "verbose", enableConsole: boolean = true) {
         this.globalLogLevel = logLevel;
 
         if (enableConsole) {

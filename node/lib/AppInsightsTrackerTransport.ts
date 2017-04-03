@@ -4,7 +4,6 @@ import * as applicationinsights from "applicationinsights";
 
 export class AppInsightsTrackerTransport implements ITrackerTransport {
 
-    public name: string = "Application Insights Tracker";
     private client: any;
 
     constructor(key: string) {
