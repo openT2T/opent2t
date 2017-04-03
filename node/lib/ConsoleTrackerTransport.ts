@@ -1,6 +1,6 @@
 /* tslint:disable:no-console */
 import {ITrackerTransport} from "./ITrackerTransport";
-import { TraceLevel } from "./Tracker";
+import { TraceLevel } from "./Logger";
 
 /**
  * Telemetry tracking transport that writes data to the console.  This is mostly useful for debugging.

@@ -1,4 +1,4 @@
-import { TraceLevel } from "./Tracker";
+import { TraceLevel } from "./Logger";
 
 export interface ITrackerTransport {
     name: string;

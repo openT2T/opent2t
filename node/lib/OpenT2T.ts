@@ -3,7 +3,6 @@ import { Logger } from "./Logger";
 import { OpenT2TConstants } from "./OpenT2TConstants";
 import { OpenT2TError } from "./OpenT2TError";
 import { ThingSchema } from "./ThingSchema";
-import { Tracker } from "./Tracker";
 import { EventEmitter } from "events";
 
 /**
@@ -11,10 +10,9 @@ import { EventEmitter } from "events";
  */
 export class OpenT2T {
 
-    public tracker: Tracker = new Tracker();
-    private logger: Logger = new Logger();
+    private logger: Logger;
 
-    constructor(logger: Logger) {
+    constructor(logger: Logger = new Logger()) {
         this.logger = logger;
     }
 
@@ -63,7 +61,7 @@ export class OpenT2T {
             thingSchema = schemaExport;
         }
 
-        this.tracker.event("OpenT2T Get Schema", Date.now() - startTime, trackingData);
+        this.logger.event("OpenT2T Get Schema", Date.now() - startTime, trackingData);
         return thingSchema;
     }
 
@@ -127,7 +125,7 @@ export class OpenT2T {
                 return;
             }
 
-            this.tracker.event("CreateTranslator", Date.now() - startTime, trackingData);
+            this.logger.event("CreateTranslator", Date.now() - startTime, trackingData);
             resolve(translator);
         });
     }
@@ -184,7 +182,7 @@ export class OpenT2T {
             returnValue = value;
         }
 
-        this.tracker.event("GetProperty", Date.now() - startTime, trackingData);
+        this.logger.event("GetProperty", Date.now() - startTime, trackingData);
         return returnValue;
     }
 
@@ -238,7 +236,7 @@ export class OpenT2T {
             await result;
         }
 
-        this.tracker.event("SetProperty", Date.now() - startTime, trackingData);
+        this.logger.event("SetProperty", Date.now() - startTime, trackingData);
     }
 
     /**
@@ -278,7 +276,7 @@ export class OpenT2T {
             addListenerMethod.call(translatorForSchema, propertyName, callback);
         }
 
-        this.tracker.event("AddPropertyListener", Date.now() - startTime, trackingData);
+        this.logger.event("AddPropertyListener", Date.now() - startTime, trackingData);
     }
 
     /**
@@ -315,7 +313,7 @@ export class OpenT2T {
             removeListenerMethod.call(translatorForSchema, propertyName, callback);
         }
 
-        this.tracker.event("RemovePropertyListener", Date.now() - startTime, trackingData);
+        this.logger.event("RemovePropertyListener", Date.now() - startTime, trackingData);
     }
 
     /**
@@ -372,7 +370,7 @@ export class OpenT2T {
             returnValue = result;
         }
 
-        this.tracker.event("InvokeMethod", Date.now() - startTime, trackingData);
+        this.logger.event("InvokeMethod", Date.now() - startTime, trackingData);
         return returnValue;
     }
 
@@ -430,7 +428,7 @@ export class OpenT2T {
     }
 
     private throwError(error: Error, data?: { [key: string]: any; }) {
-        this.tracker.exception(error, data);
+        this.logger.exception(error, data);
         throw error;
     }
 }

@@ -1,58 +1,55 @@
-import {ILogger} from "./ILogger";
-import {Utilities} from "./LoggerUtilities";
-import {LoggerInstance} from "winston";
+import { ITrackerTransport } from "./ITrackerTransport";
+import { Utilities } from "./LoggerUtilities";
 import * as winston from "winston";
 
 const timeStamp: string = "timestamp";
 
-export class Logger implements ILogger {
+export enum TraceLevel {
+    Verbose = 0,
+    Info = 1,
+    Warn = 2,
+    Error = 3
+}
 
-    private static flag: boolean = true;
-    private globalLogLevel: string = "debug";
-    private logger: LoggerInstance;
-    private transportList: Array<any> = [];
+export class Logger {
 
-    constructor(logLevel?: string, filename?: string, logger?: LoggerInstance) {
-        this.logger = logger || <any> winston;
+    private globalLogLevel: string;
+    private logger: any = new winston.Logger();
+    private transportList: Array<ITrackerTransport> = [];
 
-        // TODO: Gate loglevel strings to allowed/supported values only.
-        if (logLevel) {
-            this.globalLogLevel = logLevel;
-        }
+    constructor(logLevel: string = "info", enableConsole: boolean = true) {
+        this.globalLogLevel = logLevel;
 
-        let consoleTransport = new winston.transports.Console({
-            colorize: true,
-            level: this.globalLogLevel,
-        });
-
-        this.logger.configure({
-            transports: [
-                consoleTransport,
-            ],
-        });
-
-        this.transportList.push(consoleTransport);
-
-        if (Logger.flag === true && filename ) {
-            let fileTransport = new winston.transports.File({
-                filename,
-                handleExceptions: true,
-                level: this.globalLogLevel,
-            });
-
-            this.logger.configure({
-                transports: [
-                    consoleTransport,
-                    fileTransport,
-                ],
-            });
-
-            this.transportList.push(fileTransport);
-            Logger.flag = false;
+        if (enableConsole) {
+            this.addLoggerTransport(winston.transports.Console, { colorize: true, level: this.globalLogLevel });
         }
     }
 
-   public error(msg: string, logObject?: any): void {
+    public addLoggerTransport(transport: any, options: any): void {
+        this.logger.add(transport, options);
+    }
+
+    public removeLoggerTransport(transport: any): void {
+        this.logger.remove(transport);
+    }
+
+    public addTrackerTransport(transport: ITrackerTransport): void {
+        let index = this.transportList.indexOf(transport);
+
+        if (index === -1) {
+            this.transportList.push(transport);
+        }
+    }
+
+    public removeTrackerTransport(transport: ITrackerTransport): void {
+        let index = this.transportList.indexOf(transport);
+
+        if (index > -1) {
+            this.transportList.splice(index, 1);
+        }
+    }
+
+    public error(msg: string, logObject?: any): void {
         this.logger.error(msg, logObject);
     }
 
@@ -72,13 +69,41 @@ export class Logger implements ILogger {
         this.logger.debug(msg, logObject);
     }
 
-    public getConfiguredTransports(): Array<any> {
-        return this.transportList;
+    public event(name: string, duration: number, data?: { [key: string]: any; }): void {
+        this.callAllTransports(t => t.event(name, duration, data));
     }
 
-    public normalizeWith(normalizer: (logObject: any) => any): ILogger {
+    public trace(message: string, traceLevel: TraceLevel, data?: { [key: string]: any; }): void {
+        this.callAllTransports(t => t.trace(message, traceLevel, data));
+    }
+
+    public metric(
+        name: string,
+        value: number,
+        count?: number,
+        min?: number,
+        max?: number,
+        data?: { [key: string]: any; }): void {
+        this.callAllTransports(t => t.metric(name, value, count, min, max, data));
+    }
+
+    public exception(exception: Error, data?: { [key: string]: any; }): void {
+        this.callAllTransports(t => t.exception(exception, data));
+    }
+
+    public getConfiguredTransports(): Array<string> {
+        return this.logger._names;
+    }
+
+    public normalizeWith(normalizer: (logObject: any) => any): Logger {
         this.normalize = normalizer;
         return this;
+    }
+
+    private callAllTransports(action: (tracker: ITrackerTransport) => void): void {
+        this.transportList.forEach((tracker: ITrackerTransport) => {
+            action(tracker);
+        });
     }
 
     private normalize = (logObject: any) => {

@@ -1,5 +1,5 @@
 import { ITrackerTransport } from "./ITrackerTransport";
-import { TraceLevel } from "./Tracker";
+import { TraceLevel } from "./Logger";
 import * as applicationinsights from "applicationinsights";
 
 export class AppInsightsTrackerTransport implements ITrackerTransport {
