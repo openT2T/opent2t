@@ -113,7 +113,7 @@ export class OpenT2T {
                 require.resolve(translatorModuleName);
             } catch (err) {
                 trackingData.statusCode = 404;
-                this.throwError(new OpenT2TError(
+                this.throwError("CreateTranslator", startTime, new OpenT2TError(
                     404, `${OpenT2TConstants.MissingTranslator}: ${translatorModuleName}`), trackingData);
             }
 
@@ -149,11 +149,13 @@ export class OpenT2T {
         this.logger.verbose(
             `getPropertyAsync for : '${propertyName}' for translator schema: ${schemaName}`);
         let trackingData: any = { propertyName, schemaName, translatorName: (<any> translator).name };
+
         let translatorForSchema = this.getTranslatorForSchema(translator, schemaName);
         this.validateMemberName(propertyName);
         let memberName = this.uncapitalize(propertyName);
         let value: any = translatorForSchema[memberName];
         let returnValue: any;
+
         if (typeof value === "undefined") {
             // Allow (but do not require) the getProperty method to have an "Async" suffix
             // and/or return a Promise instead of an immediate value.
@@ -173,7 +175,7 @@ export class OpenT2T {
         }
 
         if (typeof value === "undefined") {
-            this.throwError(new TypeError("Property '" + propertyName + "' getter " +
+            this.throwError("GetProperty", startTime, new TypeError("Property '" + propertyName + "' getter " +
                 "for schema " + schemaName + " not implemented by translator."), trackingData);
         } else if (typeof value === "object" && typeof value.then === "function") {
             // The value object looks like a Promise. Await it to get the value asynchronously.
@@ -223,7 +225,7 @@ export class OpenT2T {
                 memberName = memberName + "Async";
                 setPropertyMethod = translatorForSchema[memberName];
                 if (typeof setPropertyMethod !== "function") {
-                    this.throwError(new TypeError("Property '" + propertyName + "' setter " +
+                    this.throwError("SetProperty", startTime, new TypeError("Property '" + propertyName + "' setter " +
                         "for schema " + schemaName + " not implemented by translator."), trackingData);
                 }
             }
@@ -269,7 +271,8 @@ export class OpenT2T {
         let addListenerMethod: any = (<EventEmitter> translatorForSchema).on;
 
         if (typeof addListenerMethod !== "function") {
-            this.throwError(new TypeError("Property '" + propertyName + "' notifier " +
+            this.throwError("AddPropertyListener", startTime,
+            new TypeError("Property '" + propertyName + "' notifier " +
                 "for schema " + schemaName + " not implemented by translator."), trackingData);
         } else {
             // Invoke using call() to set `this` to translatorForSchema.
@@ -306,7 +309,8 @@ export class OpenT2T {
         let removeListenerMethod: any = (<EventEmitter> translatorForSchema).removeListener;
 
         if (typeof removeListenerMethod !== "function") {
-            this.throwError(new TypeError("Property '" + propertyName + "' notifier removal " +
+            this.throwError("RemovePropertyListener", startTime,
+            new TypeError("Property '" + propertyName + "' notifier removal " +
                 "for schema " + schemaName + " not implemented by translator."), trackingData);
         } else {
             // Invoke using call() to set `this` to translatorForSchema.
@@ -345,7 +349,8 @@ export class OpenT2T {
         let translatorForSchema = this.getTranslatorForSchema(translator, schemaName);
         this.validateMemberName(methodName);
         if (!Array.isArray(args)) {
-            this.throwError(new TypeError("Args argument must be an array."), trackingData);
+            this.throwError("InvokeMethod", startTime,
+            new TypeError("Args argument must be an array."), trackingData);
         }
 
         // Allow (but do not require) the method to have an "Async" suffix
@@ -354,7 +359,7 @@ export class OpenT2T {
         if (typeof method !== "function") {
             method = translatorForSchema[methodName + "Async"];
             if (typeof method !== "function") {
-                this.throwError(new TypeError("Method '" + methodName + "' " +
+                this.throwError("InvokeMethod", startTime, new TypeError("Method '" + methodName + "' " +
                     "for schema " + schemaName + " not implemented by translator."), trackingData);
             }
         }
@@ -427,8 +432,10 @@ export class OpenT2T {
         return propertyName;
     }
 
-    private throwError(error: Error, data?: { [key: string]: any; }) {
+    private throwError(eventName: string, startTime: number, error: Error, data: { [key: string]: any; }) {
         this.logger.exception(error, data);
+        data.Error = error;
+        this.logger.event(eventName, Date.now() - startTime, data);
         throw error;
     }
 }
