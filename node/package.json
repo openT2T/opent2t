@@ -1,6 +1,6 @@
 {
   "name": "opent2t",
-  "version": "1.0.4",
+  "version": "1.1.0",
   "description": "Open Translators to Things",
   "main": "index.js",
   "typings": "index.d.ts",
