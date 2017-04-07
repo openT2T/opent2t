@@ -1,6 +1,6 @@
 {
   "name": "opent2t",
-  "version": "1.0.4",
+  "version": "1.1.0",
   "description": "Open Translators to Things",
   "main": "index.js",
   "typings": "index.d.ts",
@@ -22,9 +22,12 @@
   },
   "homepage": "https://github.com/opent2t/opent2t#readme",
   "dependencies": {
+    "@types/applicationinsights": "^0.15.33",
+    "applicationinsights": "^0.19.0",
     "json-schema-ref-parser": "^3.1.2",
     "mz": "^2.4.0",
     "raml-1-parser": "^0.2.32",
+    "uuid": "^3.0.1",
     "winston": "^2.3.1",
     "xml2js": "^0.4.17"
   },
