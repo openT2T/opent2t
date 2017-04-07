@@ -119,7 +119,7 @@ export class OpenT2T {
 
             try {
                 let translatorClass: any = require(translatorModuleName);
-                translator = new translatorClass(this.logger, properties);
+                translator = new translatorClass(properties, this.logger);
             } catch (err) {
                 reject(err);
                 return;
