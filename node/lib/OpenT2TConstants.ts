@@ -17,7 +17,7 @@ export class OpenT2TConstants {
     public static MissingTranslator: string = "Cannot find translator module";
     public static MustSubscribeToDevice: string = "Must subscribe to a device";
     public static NotImplemented: string = "Not Implemented";
-    public static NotFoundOrActive: string = "Device not found or unreachable";
+    public static Unreachable: string = "Device not found or unreachable";
     public static ResourceNotFound: string = "Resource not found";
     public static UnknownHubSubscribeRequest: string = "Unknown subscription request";
     public static UnknownPlatform: string = "Unknown platform. The requested platform cannot be translated";
