@@ -1,4 +1,5 @@
 import { OpenT2TConstants } from "./OpenT2TConstants";
+import { OpenT2TErrorData } from "./OpenT2TErrorData";
 
 /**
  * Custom Error class that extends built-in Error.
@@ -7,9 +8,45 @@ export class OpenT2TError extends Error {
     public statusCode: number;
     public innerError: Error;
 
-    constructor(statusCode: number, message: string, innerError?: Error) {
+    constructor(statusCode: number, message: string, innerError?: Error, data?: OpenT2TErrorData) {
         if (!message) {
             message = OpenT2TConstants.InternalServerError;
+        }
+
+         //**** Format the message if the user provided data */
+        // Bad request
+        if (data !== undefined && data !== null) {
+            if (statusCode == 400) {
+                // Invalid resource
+                if (message === OpenT2TConstants.InvalidResource) {
+                    message = data.provider + ": " + message + " found " + data.attributeId + " '" + data.value + "'";
+                    if(data.expected) {
+                        message += "; expected " + data.expected;
+                    }
+                }
+            }
+            if (statusCode == 401) {
+                // Unauthorized
+                if (message === OpenT2TConstants.AccessDenied) {
+                    message = data.provider + ": " + message;
+                    if(data.details) {
+                        message += "; " + data.details;
+                    }
+                }
+            }
+            if (statusCode == 440) {
+                // Value outside range
+                if (message === OpenT2TConstants.RangeCheck) {
+                    message = data.provider + ": " + message + " found " + data.attributeId + " '" + data.value
+                        + " " + data.unit + "'; expected [" + data.min + ", " + data.max + "]";
+                }
+            }
+            if (statusCode == 442) {
+                // Device is off
+                if (message === OpenT2TConstants.DeviceOff) {
+                    message = data.provider + ": " + message;
+                }
+            }
         }
 
         super(message);
